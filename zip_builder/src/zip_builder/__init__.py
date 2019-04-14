@@ -1,6 +1,4 @@
-"""
-Lambda Layer zip builder for Python dependencies.
-"""
+"""Lambda Layer zip builder for Python dependencies."""
 import io
 import logging
 import os
@@ -161,7 +159,7 @@ def lambda_handler(event, context):
 
         {
             "name": "layer name",
-            "requirements": ["Dependency requirements"],
+            "requirements": ["List of requirements"]
         }
 
     Return shape:
@@ -170,7 +168,7 @@ def lambda_handler(event, context):
 
         {
             "name": "layer name",
-            "requirements": ["Dependency requirements"],
+            "requirements": ["List of requirements"],
             "installed": ["Actual versions of all installed requirements"],
             "runtimes": ["Lambda runtime name"],
             "s3_key": "S3 key containing built zip"
