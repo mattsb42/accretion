@@ -129,7 +129,7 @@ def _build_zip() -> io.BytesIO:
 
 
 def _build_and_upload_zip(project_name: str) -> str:
-    key = f"{project_name}/{uuid.uuid4()}"
+    key = f"accretion/{project_name}/{uuid.uuid4()}.zip"
     bucket_name = os.environ[S3_BUCKET]
     zip_buffer = _build_zip()
     s3 = boto3.client("s3")
