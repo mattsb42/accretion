@@ -16,13 +16,16 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 WORKING_DIR = "/tmp/accretion"
-PIP_CACHE = f"{WORKING_DIR}/pipcache"
 VENV_DIR = f"{WORKING_DIR}/venv"
 BUILD_DIR = f"{WORKING_DIR}/build"
 BUILD_INPUT = f"{WORKING_DIR}/build-input"
 BUILD_REQUIREMENTS = f"{WORKING_DIR}/build-requirements"
 BUILD_LOG = f"{WORKING_DIR}/build-log"
 S3_BUCKET = "S3_BUCKET"
+
+
+class ZipBuilderError(Exception):
+    """Raised when any known error happens."""
 
 
 class ExecutionError(Exception):
@@ -167,8 +170,6 @@ def lambda_handler(event, context):
     ..code:: json
 
         {
-            "name": "layer name",
-            "requirements": ["List of requirements"],
             "installed": ["Actual versions of all installed requirements"],
             "runtimes": ["Lambda runtime name"],
             "s3_key": "S3 key containing built zip"
@@ -178,15 +179,18 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    _build_venv()
-    _build_requirements(*event["requirements"])
-    _install_requirements_to_build()
-    installed = _parse_install_log()
-    s3_key = _build_and_upload_zip(event["name"])
-    return {
-        "name": event["name"],
-        "requirements": event["requirements"],
-        "installed": installed,
-        "runtimes": [_runtime_name()],
-        "s3_key": s3_key,
-    }
+    try:
+        _build_venv()
+        _build_requirements(*event["requirements"])
+        _install_requirements_to_build()
+        installed = _parse_install_log()
+        s3_key = _build_and_upload_zip(event["name"])
+        return {
+            "installed": installed,
+            "runtimes": [_runtime_name()],
+            "s3_key": s3_key,
+        }
+    except ZipBuilderError as error:
+        raise
+    except Exception:
+        raise
