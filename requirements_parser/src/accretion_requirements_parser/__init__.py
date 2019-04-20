@@ -50,15 +50,15 @@ def lambda_handler(event, context):
     ..code:: json
 
         {
-            "name": "layer name",
-            "language": "Language to target",
-            "requirements": {
-                "type": "ready",
-                "requirements": ["List of requirements"]
+            "Name": "layer name",
+            "Language": "Language to target",
+            "Requirements": {
+                "Type": "ready",
+                "Requirements": ["List of requirements"]
             },
-            "requirements": {
-                "type": "requirements.txt",
-                "requirements": "Raw contents of requirements.txt file format"
+            "Requirements": {
+                "Type": "requirements.txt",
+                "Requirements": "Raw contents of requirements.txt file format"
             }
         }
 
@@ -73,23 +73,23 @@ def lambda_handler(event, context):
     ..code:: json
 
         {
-            "name": "layer name",
-            "language": "Language to target",
-            "requirements": ["List of requirements"]
+            "Name": "layer name",
+            "Language": "Language to target",
+            "Requirements": ["List of requirements"]
         }
 
     :param event:
     :param context:
     :return:
     """
-    valid_language = _validate_languge(event["language"])
+    valid_language = _validate_languge(event["Language"])
     valid_requirements = _normalize_requirements(
-        requirements_type=event["requirements"]["type"],
-        requirements=event["requirements"]["requirements"],
+        requirements_type=event["Requirements"]["Type"],
+        requirements=event["Requirements"]["Requirements"],
     )
 
     return {
-        "name": event["name"],
-        "language": valid_language,
-        "requirements": valid_requirements,
+        "Name": event["Name"],
+        "Language": valid_language,
+        "Requirements": valid_requirements,
     }

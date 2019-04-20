@@ -9,7 +9,7 @@ import sys
 import uuid
 import venv
 from zipfile import ZipFile
-from typing import Iterable
+from typing import Dict, Iterable
 
 import boto3
 
@@ -43,6 +43,20 @@ def _setup():
 
     global _is_setup
     _is_setup = True
+
+
+class PackageVersion:
+    def __init__(self, name: str, version: str):
+        self.name = name
+        self.version = version
+
+    @classmethod
+    def from_pip_log(cls, log_value: str) -> "PackageVersion":
+        name, version = log_value.rsplit("-", 1)
+        return PackageVersion(name, version)
+
+    def to_dict(self) -> Dict[str, str]:
+        return dict(Name=self.name, Version=self.version)
 
 
 def _execute_command(command: str) -> (str, str):
@@ -85,7 +99,7 @@ def _build_requirements(*libraries: str):
             f.write(f"{library}\n")
 
 
-def _parse_install_log() -> Iterable[str]:
+def _parse_install_log() -> Iterable[Dict[str, str]]:
     trigger = "Successfully installed"
     installed = []
     with open(BUILD_LOG, "r") as f:
@@ -96,7 +110,7 @@ def _parse_install_log() -> Iterable[str]:
                 installed = line.split()
                 break
     logger.debug(f"Installed to layer artifact: {installed}")
-    return installed
+    return [PackageVersion.from_pip_log(log_entry).to_dict() for log_entry in installed]
 
 
 def _file_filter(filename: str) -> bool:
@@ -175,8 +189,8 @@ def lambda_handler(event, context):
     ..code:: json
 
         {
-            "name": "layer name",
-            "requirements": ["List of requirements"]
+            "Name": "layer name",
+            "Requirements": ["List of requirements"]
         }
 
     Return shape:
@@ -184,9 +198,10 @@ def lambda_handler(event, context):
     ..code:: json
 
         {
-            "installed": ["Actual versions of all installed requirements"],
-            "runtimes": ["Lambda runtime name"],
-            "s3_key": "S3 key containing built zip"
+            "Installed": ["Actual versions of all installed requirements"],
+            "Runtimes": ["Lambda runtime name"],
+            "ArtifactKey": "S3 key containing built zip",
+            "ManifestKey": "S3 key containing job manifest"
         }
 
     :param event:
@@ -198,22 +213,22 @@ def lambda_handler(event, context):
             _setup()
 
         _build_venv()
-        _build_requirements(*event["requirements"])
+        _build_requirements(*event["Requirements"])
         _install_requirements_to_build()
         installed = _parse_install_log()
-        artifact_key = _build_and_upload_zip(event["name"])
+        artifact_key = _build_and_upload_zip(event["Name"])
         manifest_key = _write_manifest(
-            project_name=event["name"],
+            project_name=event["Name"],
             artifact_key=artifact_key,
-            requirements=event["requirements"],
+            requirements=event["Requirements"],
             installed=installed,
             runtimes=[_runtime_name()],
         )
         return {
-            "installed": installed,
-            "runtimes": [_runtime_name()],
-            "artifact_key": artifact_key,
-            "manifest_key": manifest_key,
+            "Installed": installed,
+            "Runtimes": [_runtime_name()],
+            "ArtifactKey": artifact_key,
+            "ManifestKey": manifest_key,
         }
     except ZipBuilderError as error:
         raise
