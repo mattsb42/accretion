@@ -1,4 +1,4 @@
-"""Python dependency zip builder."""
+"""Accretion workers."""
 import os
 import re
 
@@ -26,7 +26,7 @@ def get_requirements():
 
 
 setup(
-    name="accretion_zip_build_python",
+    name="accretion_workers",
     packages=find_packages("src"),
     package_dir={"": "src"},
     version=get_version(),
@@ -34,9 +34,9 @@ setup(
     maintainer="mattsb42",
     author_email="m@ttsb42.com",
     url="https://github.com/mattsb42/accretion",
-    description="Lambda Layer zip builder for Python dependencies",
+    description="Accretion workers.",
     long_description=read("README.rst"),
-    keywords="aws lambda",
+    keywords="aws lambda accretion",
     license="Apache License 2.0",
     install_requires=get_requirements(),
     classifiers=[
