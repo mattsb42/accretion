@@ -52,6 +52,8 @@ Goals
 * The user should not need to do anything more than provide a listing that native tools will understand and resolve.
 * Users should be able to determine what is actually installed in a Layer version that they are consuming.
 * Notifications should be available to tell a consumer that there is a new Layer version available.
+* For the end user, building their Lambda deployment artifact should be as simple as possible.
+  For Python, this should ideally simply mean uploading the project wheel file as the Lambda zip.
 
 Assumptions
 ===========
