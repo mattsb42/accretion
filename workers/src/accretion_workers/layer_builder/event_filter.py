@@ -10,9 +10,24 @@ except ImportError:
 def lambda_handler(event, context):
     """We only want to process events for artifact manifests.
 
+    Event shape:
+
+    ..note::
+
+        CloudWatch Event record for S3:PutObject event.
+
+    Return shape:
+
+    ..code:: json
+
+        {
+            "ResourceKey": "S3 key containing object that triggered event",
+            "ProcessEvent": boolean decision stating whether to continue processing event
+        }
+
     :param event: CloudWatch Event record for S3:PutObject event
     :param context:
     :return:
     """
     s3_key = event["detail"]["requestParameters"]["key"]
-    return s3_key.startswith(ARTIFACT_MANIFESTS_PREFIX)
+    return {"ProcessEvent": s3_key.startswith(ARTIFACT_MANIFESTS_PREFIX), "ResourceKey": s3_key}
