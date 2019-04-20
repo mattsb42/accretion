@@ -1,5 +1,6 @@
 """Lambda Layer zip builder for Python dependencies."""
 import io
+import json
 import logging
 import os
 import shutil
@@ -22,6 +23,7 @@ BUILD_INPUT = f"{WORKING_DIR}/build-input"
 BUILD_REQUIREMENTS = f"{WORKING_DIR}/build-requirements"
 BUILD_LOG = f"{WORKING_DIR}/build-log"
 S3_BUCKET = "S3_BUCKET"
+_is_setup = False
 
 
 class ZipBuilderError(Exception):
@@ -32,15 +34,20 @@ class ExecutionError(Exception):
     """Raised when a command fails to execute."""
 
 
+def _setup():
+    global _bucket_name
+    _bucket_name = os.environ[S3_BUCKET]
+
+    global _s3
+    _s3 = boto3.client("s3")
+
+    global _is_setup
+    _is_setup = True
+
+
 def _execute_command(command: str) -> (str, str):
     logger.debug(f"Executing command: {command}")
-    proc = subprocess.run(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding="utf-8",
-        shell=True,
-    )
+    proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8", shell=True)
     logger.debug("============STDOUT============")
     logger.debug(proc.stdout)
     logger.debug("============STDERR============")
@@ -51,9 +58,7 @@ def _execute_command(command: str) -> (str, str):
 
 
 def _execute_in_venv(command: str) -> (str, str):
-    return _execute_command(
-        f"source {VENV_DIR}/bin/activate; {command}; deactivate"
-    )
+    return _execute_command(f"source {VENV_DIR}/bin/activate; {command}; deactivate")
 
 
 def _clean_env():
@@ -87,7 +92,7 @@ def _parse_install_log() -> Iterable[str]:
         for line in f:
             line = line.split(" ", 1)[-1].strip()
             if line.startswith(trigger):
-                line = line[len(trigger):].strip()
+                line = line[len(trigger) :].strip()
                 installed = line.split()
                 break
     logger.debug(f"Installed to layer artifact: {installed}")
@@ -121,10 +126,7 @@ def _build_zip() -> io.BytesIO:
                     continue
 
                 filepath = os.path.join(root, filename)
-                zipper.write(
-                    filename=filepath,
-                    arcname=f"python/{filepath[len(BUILD_DIR) + 1:]}"
-                )
+                zipper.write(filename=filepath, arcname=f"python/{filepath[len(BUILD_DIR) + 1:]}")
 
     logger.debug(f"Zip file size: {buffer.tell()} bytes")
     buffer.seek(0)
@@ -132,24 +134,36 @@ def _build_zip() -> io.BytesIO:
 
 
 def _build_and_upload_zip(project_name: str) -> str:
-    key = f"accretion/{project_name}/{uuid.uuid4()}.zip"
-    bucket_name = os.environ[S3_BUCKET]
+    key = f"accretion/{project_name}/artifacts/{uuid.uuid4()}.zip"
     zip_buffer = _build_zip()
-    s3 = boto3.client("s3")
-    s3.put_object(
-        Bucket=bucket_name,
-        Key=key,
-        Body=zip_buffer,
+
+    _s3.put_object(Bucket=_bucket_name, Key=key, Body=zip_buffer)
+    return key
+
+
+def _write_manifest(
+    project_name: str, artifact_key: str, requirements=Iterable[str], installed=Iterable[str], runtimes=Iterable[str]
+) -> str:
+    artifact_id = artifact_key[artifact_key.rindex("/") + 1 : artifact_key.rindex(".")]
+    key = f"accretion/{project_name}/manifests/{artifact_id}.manifest"
+    body = json.dumps(
+        dict(
+            ProjectName=project_name,
+            ArtifactS3Key=artifact_key,
+            Requirements=requirements,
+            Installed=installed,
+            Runtimes=runtimes,
+        ),
+        indent=4,
     )
+
+    _s3.put_object(Bucket=_bucket_name, Key=key, Body=body)
     return key
 
 
 def _runtime_name():
     try:
-        return {3: {
-            6: "python3.6",
-            7: "python3.7"
-        }}[sys.version_info.major][sys.version_info.minor]
+        return {3: {6: "python3.6", 7: "python3.7"}}[sys.version_info.major][sys.version_info.minor]
     except KeyError:
         raise Exception(f"Unexpected runtime: {sys.version_info}")
 
@@ -180,15 +194,26 @@ def lambda_handler(event, context):
     :return:
     """
     try:
+        if not _is_setup:
+            _setup()
+
         _build_venv()
         _build_requirements(*event["requirements"])
         _install_requirements_to_build()
         installed = _parse_install_log()
-        s3_key = _build_and_upload_zip(event["name"])
+        artifact_key = _build_and_upload_zip(event["name"])
+        manifest_key = _write_manifest(
+            project_name=event["name"],
+            artifact_key=artifact_key,
+            requirements=event["requirements"],
+            installed=installed,
+            runtimes=[_runtime_name()],
+        )
         return {
             "installed": installed,
             "runtimes": [_runtime_name()],
-            "s3_key": s3_key,
+            "artifact_key": artifact_key,
+            "manifest_key": manifest_key,
         }
     except ZipBuilderError as error:
         raise
