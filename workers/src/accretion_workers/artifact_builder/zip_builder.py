@@ -13,7 +13,11 @@ from typing import Dict, Iterable
 
 import boto3
 
-from accretion_workers._util import ARTIFACTS_PREFIX, ARTIFACT_MANIFESTS_PREFIX
+try:
+    from accretion_workers._util import ARTIFACTS_PREFIX, ARTIFACT_MANIFESTS_PREFIX
+except ImportError:
+    ARTIFACTS_PREFIX = "accretion/artifacts/"
+    ARTIFACT_MANIFESTS_PREFIX = "accretion/manifests/"
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
