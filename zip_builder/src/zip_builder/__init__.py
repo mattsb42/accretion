@@ -148,7 +148,7 @@ def _build_zip() -> io.BytesIO:
 
 
 def _build_and_upload_zip(project_name: str) -> str:
-    key = f"accretion/{project_name}/artifacts/{uuid.uuid4()}.zip"
+    key = f"accretion/artifacts/{project_name}/{uuid.uuid4()}.zip"
     zip_buffer = _build_zip()
 
     _s3.put_object(Bucket=_bucket_name, Key=key, Body=zip_buffer)
@@ -159,7 +159,7 @@ def _write_manifest(
     project_name: str, artifact_key: str, requirements=Iterable[str], installed=Iterable[str], runtimes=Iterable[str]
 ) -> str:
     artifact_id = artifact_key[artifact_key.rindex("/") + 1 : artifact_key.rindex(".")]
-    key = f"accretion/{project_name}/manifests/{artifact_id}.manifest"
+    key = f"accretion/manifests/{project_name}/{artifact_id}.manifest"
     body = json.dumps(
         dict(
             ProjectName=project_name,
