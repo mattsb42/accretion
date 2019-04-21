@@ -63,6 +63,13 @@ As Accretion evolves, these should be revisited and addressed.
 
 #. Only the primary public artifact repositories will be considered as dependency sources.
 #. All artifacts and Layers will be publicly consumable.
+#. The license info for the Layer cannot be determined.
+#. Project names must not exceed 70 characters.
+   This is to save space to add runtime information to the Layer name.
+   Initially, we use the language specified at the start to build a separate artifact for every runtime.
+   A better approach might be to require specified runtimes from the start,
+   but this will have its own issues because the artifacts for one language version
+   might not always be compatible with the artifacts for other language versions.
 
 Solution
 ********

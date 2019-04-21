@@ -86,13 +86,21 @@ the layer builder creates a manifest file that describes that Layer.
 
 * **LayerArn** : Layer Amazon Resource Name (Arn).
 * **LayerVersion** : Layer version that was created.
-* **ArtifactManifest** : S3 key in the regional artifacts bucket that contains the artifact manifest.
+* **ArtifactManifest** : Structure identifying location of artifact manifest.
+
+  * **S3Bucket** : S3 regional artifacts bucket name.
+  * **S3Key** : S3 key in the regional artifacts bucket that contains the artifact manifest.
 
 
 .. code:: json
 
     {
-        "LayerArn": "",
-        "LayerVersion": 3,
-        "ArtifactManifest": "accretion/manmifests/example layer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.manifest"
+        "Layer": {
+            "Arn": "",
+            "Version": 3
+        },
+        "ArtifactManifest": {
+            "S3Bucket": "accretion-regional-bucket",
+            "S3Key": "accretion/manifests/example layer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.manifest"
+        }
     }
