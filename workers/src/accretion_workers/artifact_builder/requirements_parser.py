@@ -1,5 +1,6 @@
 """Accretion requirements parser."""
 import logging
+import re
 from typing import Iterator, Union
 
 logger = logging.getLogger()
@@ -8,6 +9,17 @@ logger.setLevel(logging.DEBUG)
 
 def _requirements_txt_to_ready(requirements_txt: str) -> Iterator[str]:
     return requirements_txt.strip().split()
+
+
+def _validate_name(project_name: str):
+    """Project names must be valid Lambda Layer names.
+    https://docs.aws.amazon.com/lambda/latest/dg/API_PublishLayerVersion.html#API_PublishLayerVersion_RequestSyntax
+
+    :param project_name:
+    :return:
+    """
+    if not re.fullmatch(r"[a-zA-Z0-9-_]+", project_name):
+        raise Exception(f"Invalid name: {project_name!r}")
 
 
 def _validate_ready_requirements(requirements: Iterator[str]):
@@ -82,6 +94,8 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
+    _validate_name(event["Name"])
+
     valid_language = _validate_languge(event["Language"])
     valid_requirements = _normalize_requirements(
         requirements_type=event["Requirements"]["Type"],
