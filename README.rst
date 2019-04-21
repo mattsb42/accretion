@@ -70,6 +70,9 @@ As Accretion evolves, these should be revisited and addressed.
    A better approach might be to require specified runtimes from the start,
    but this will have its own issues because the artifacts for one language version
    might not always be compatible with the artifacts for other language versions.
+#. Given the above, we are not caring about SSE anywhere.
+   Once support for private resources is added, SSE support should also be added everywhere.
+
 
 Solution
 ********
