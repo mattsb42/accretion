@@ -1,10 +1,10 @@
 {
-    "Comment": "Notification Listener",
+    "Comment": "Replication Listener",
     "StartAt": "Filter",
     "States": {
         "Filter": {
             "Type": "Task",
-            "Resource": "",
+            "Resource": "${EventFilterFunction.Arn}",
             "ResultPath": "$",
             "Next": "ShouldProcess"
         },
@@ -25,7 +25,7 @@
         },
         "LocateArtifact": {
             "Type": "Task",
-            "Resource": "",
+            "Resource": "${ArtifactLocatorFunction.Arn}",
             "ResultPath": "$.Artifact",
             "Next": "ArtifactCheck"
         },
@@ -64,7 +64,7 @@
         },
         "PublishNewVersion": {
             "Type": "Task",
-            "Resource": "",
+            "Resource": "${LayerVersionPublisherFunction.Arn}",
             "ResultPath": "$.Layer",
             "Next": "Notify"
         },
@@ -72,7 +72,7 @@
             "Type": "Task",
             "Resource": "arn:aws:states:::sns:publish",
             "Parameters": {
-                "TopicArn": "",
+                "TopicArn": "${NotifyTopic}",
                 "Message.$": "$.Layer"
             },
             "End": true

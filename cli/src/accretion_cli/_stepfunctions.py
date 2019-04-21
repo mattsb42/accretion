@@ -94,7 +94,7 @@ def _replication_listener_workflow(
     )
 
     states["ArtifactCheck"] = dict(
-        type="Choice",
+        Type="Choice",
         Choices=[
             dict(Variable="$.Artifact.Found", BooleanEquals=True, Next="PublishNewVersion"),
             dict(
