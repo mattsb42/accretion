@@ -1,4 +1,5 @@
 """Lambda Layer zip artifact_builder for Python dependencies."""
+import hashlib
 import io
 import json
 import logging
@@ -6,12 +7,12 @@ import os
 import shutil
 import subprocess
 import sys
-import uuid
 import venv
 from zipfile import ZipFile
 from typing import Dict, Iterable
 
 import boto3
+from botocore.exceptions import ClientError
 
 try:
     from accretion_workers._util import ARTIFACTS_PREFIX, ARTIFACT_MANIFESTS_PREFIX
@@ -29,6 +30,7 @@ BUILD_INPUT = f"{WORKING_DIR}/build-input"
 BUILD_REQUIREMENTS = f"{WORKING_DIR}/build-requirements"
 BUILD_LOG = f"{WORKING_DIR}/build-log"
 S3_BUCKET = "S3_BUCKET"
+_RUNTIME_NAMES = {3: {6: "python3.6", 7: "python3.7"}}
 _is_setup = False
 
 
@@ -153,8 +155,35 @@ def _build_zip() -> io.BytesIO:
     return buffer
 
 
-def _build_and_upload_zip(project_name: str) -> str:
-    key = f"{ARTIFACTS_PREFIX}{project_name}/{uuid.uuid4()}.zip"
+def _key_hash(installed: Iterable[Dict[str, str]]):
+    hasher = hashlib.sha256()
+
+    hasher.update(b"===INSTALLED===")
+    for statement in sorted([package["Name"] + "-" + package["Version"] for package in installed]):
+        hasher.update(statement.encode("utf-8"))
+
+    hasher.update(b"===RUNTIMES===")
+    hasher.update(_runtime_name().encode("utf-8"))
+
+    return hasher.hexdigest()
+
+
+def _artifact_exists(artifact_key: str) -> bool:
+    try:
+        _s3.head_object(Bucket=_bucket_name, Key=artifact_key)
+    except ClientError:
+        return False
+    else:
+        return True
+
+
+def _build_and_upload_zip(project_name: str, installed: Iterable[Dict[str, str]]) -> str:
+    artifact_id = _key_hash(installed)
+    key = f"{ARTIFACTS_PREFIX}{project_name}/{artifact_id}.zip"
+
+    if _artifact_exists(key):
+        return key
+
     zip_buffer = _build_zip()
 
     _s3.put_object(Bucket=_bucket_name, Key=key, Body=zip_buffer)
@@ -166,6 +195,10 @@ def _write_manifest(
 ) -> str:
     artifact_id = artifact_key[artifact_key.rindex("/") + 1 : artifact_key.rindex(".")]
     key = f"{ARTIFACT_MANIFESTS_PREFIX}{project_name}/{artifact_id}.manifest"
+
+    if _artifact_exists(key):
+        return key
+
     body = json.dumps(
         dict(
             ProjectName=project_name,
@@ -183,7 +216,7 @@ def _write_manifest(
 
 def _runtime_name():
     try:
-        return {3: {6: "python3.6", 7: "python3.7"}}[sys.version_info.major][sys.version_info.minor]
+        return _RUNTIME_NAMES[sys.version_info.major][sys.version_info.minor]
     except KeyError:
         raise Exception(f"Unexpected runtime: {sys.version_info}")
 
@@ -227,7 +260,7 @@ def lambda_handler(event, context):
         _build_requirements(*event["Requirements"])
         _install_requirements_to_build()
         installed = _parse_install_log()
-        artifact_key = _build_and_upload_zip(event["Name"])
+        artifact_key = _build_and_upload_zip(event["Name"], installed)
         manifest_key = _write_manifest(
             project_name=event["Name"],
             artifact_key=artifact_key,
