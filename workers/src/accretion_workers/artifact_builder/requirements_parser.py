@@ -3,6 +3,7 @@ import logging
 import re
 from typing import Iterator, Union
 
+MAX_NAME_LENGTH = 70
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -19,7 +20,10 @@ def _validate_name(project_name: str):
     :return:
     """
     if not re.fullmatch(r"[a-zA-Z0-9-_]+", project_name):
-        raise Exception(f"Invalid name: {project_name!r}")
+        raise Exception(f"Project name must be a valid Lambda Layer name: {project_name!r}")
+
+    if len(project_name) > MAX_NAME_LENGTH:
+        raise Exception(f"Project name must not be longer than {MAX_NAME_LENGTH} characters")
 
 
 def _validate_ready_requirements(requirements: Iterator[str]):
