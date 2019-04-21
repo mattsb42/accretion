@@ -72,7 +72,7 @@
                         "Fn::Ref": "WorkersS3Key"
                     }
                 },
-                "Handler": "accretion_workers.layer_builder.requirements_parser.lambda_handler",
+                "Handler": "accretion_workers.artifact_builder.requirements_parser.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {
@@ -167,7 +167,7 @@
                         "Fn::Ref": "WorkersS3Key"
                     }
                 },
-                "Handler": "accretion_workers.layer_builder.zip_builder.lambda_handler",
+                "Handler": "accretion_workers.artifact_builder.zip_builder.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {
@@ -262,7 +262,7 @@
                         "Fn::Ref": "WorkersS3Key"
                     }
                 },
-                "Handler": "accretion_workers.layer_builder.zip_builder.lambda_handler",
+                "Handler": "accretion_workers.artifact_builder.zip_builder.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {

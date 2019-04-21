@@ -52,6 +52,7 @@ def _add_cloudwatch_event_rule(
 
     rule = events.Rule(
         f"{base_name}Rule",
+        State="ENABLED",
         EventPattern={
             "source": ["aws.s3"],
             "detail-type": ["AWS API Call via CloudTrail"],
@@ -61,13 +62,9 @@ def _add_cloudwatch_event_rule(
                 "requestParameters": {"bucketName": [replication_bucket.ref()]},
             },
         },
-        State="ENABLED",
         Targets=[
             events.Target(
-                f"{base_name}TriggerWorkflow",
-                Arn=listener_workflow.ref(),
-                Id=f"{base_name}TriggerWorkflowId",
-                RoleArn=trigger_role.get_att("Arn"),
+                Arn=listener_workflow.ref(), Id=f"{base_name}TriggerWorkflow", RoleArn=trigger_role.get_att("Arn")
             )
         ],
     )
@@ -93,9 +90,7 @@ def _add_artifact_locator(lambda_adder: Callable, replication_bucket: Parameter)
 
 
 def _add_layer_version_publisher(lambda_adder: Callable, regional_bucket: s3.Bucket) -> awslambda.Function:
-    statements = s3_put_object_statement(
-        *[f"${{{regional_bucket.title}}}/accretion/{group}/" for group in ("artifacts", "manifests")]
-    )
+    statements = s3_put_object_statement(f"${{{regional_bucket.title}}}/accretion/layers/")
 
     return lambda_adder(
         base_name="LayerVersionPublisher",
@@ -114,7 +109,9 @@ def build() -> Template:
     builder = Template(Description="Accretion replication listener resources")
 
     replication_bucket = builder.add_parameter(
-        Parameter("ReplicationBucket", Description="Bucket to watch for new Accretion artifacts and manifests.")
+        Parameter(
+            "ReplicationBucket", Type="String", Description="Bucket to watch for new Accretion artifacts and manifests"
+        )
     )
     workers_key = builder.add_parameter(
         Parameter("WorkersS3Key", Type="String", Description="S3 key in artifacts bucket containing workers zip")

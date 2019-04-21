@@ -1,0 +1,566 @@
+{
+    "Description": "Accretion replication listener resources",
+    "Parameters": {
+        "ReplicationBucket": {
+            "Type": "String",
+            "Description": "Bucket to watch for new Accretion artifacts and manifests"
+        },
+        "WorkersS3Key": {
+            "Type": "String",
+            "Description": "S3 key in artifacts bucket containing workers zip"
+        },
+        "Boto3LambdaLayer": {
+            "Type": "String",
+            "Description": "Lambda Layer Version Arn containing recent boto3 build"
+        }
+    },
+    "Resources": {
+        "RegionalBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "ReplicationListenerTrail": {
+            "Type": "AWS::CloudTrail::Trail",
+            "Properties": {
+                "EnableLogFileValidation": true,
+                "EventSelectors": [
+                    {
+                        "IncludeManagementEvents": false,
+                        "DataResources": [
+                            {
+                                "Type": "AWS::S3::Object",
+                                "Values": [
+                                    {
+                                        "Fn::Sub": "arn:${AWS::Partition}:s3:::${ReplicationBucket}/accretion/manifests/"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "IncludeGlobalServiceEvents": false,
+                "IsLogging": true,
+                "IsMultiRegionTrail": false,
+                "S3BucketName": {
+                    "Fn::Ref": "RegionalBucket"
+                },
+                "S3KeyPrefix": "accretion/cloudtrail/",
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "EventFilterRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "EventFilterRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "EventFilterFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "EventFilterRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Fn::Ref": "ReplicationBucket"
+                    },
+                    "S3Key": {
+                        "Fn::Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.layer_builder.event_filter.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Fn::Ref": "ReplicationBucket"
+                        }
+                    }
+                },
+                "Runtime": "python3.7",
+                "Layers": [
+                    {
+                        "Fn::Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 128,
+                "Timeout": 5,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "ArtifactLocatorRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ArtifactLocatorRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ReplicationBucket}/accretion/artifacts/*"
+                                        },
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ReplicationBucket}/accretion/manifests/*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ArtifactLocatorFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "ArtifactLocatorRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Fn::Ref": "ReplicationBucket"
+                    },
+                    "S3Key": {
+                        "Fn::Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.layer_builder.artifact_checker.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Fn::Ref": "ReplicationBucket"
+                        }
+                    }
+                },
+                "Runtime": "python3.7",
+                "Layers": [
+                    {
+                        "Fn::Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 512,
+                "Timeout": 30,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "LayerVersionPublisherRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "LayerVersionPublisherRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${RegionalBucket}/accretion/layers/*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "LayerVersionPublisherFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LayerVersionPublisherRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Fn::Ref": "ReplicationBucket"
+                    },
+                    "S3Key": {
+                        "Fn::Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.layer_builder.version_publisher.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Fn::Ref": "RegionalBucket"
+                        }
+                    }
+                },
+                "Runtime": "python3.7",
+                "Layers": [
+                    {
+                        "Fn::Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 1024,
+                "Timeout": 60,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "NotifyTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {}
+        },
+        "NotifyTopicPolicy": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "Properties": {
+                "Topics": [
+                    {
+                        "Fn::Ref": "NotifyTopic"
+                    }
+                ],
+                "PolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Id": "OwnerPolicy",
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": [
+                                "SNS:Publish",
+                                "SNS:RemovePermission",
+                                "SNS:SetTopicAttributes",
+                                "SNS:DeleteTopic",
+                                "SNS:ListSubscriptionsByTopic",
+                                "SNS:GetTopicAttributes",
+                                "SNS:Receive",
+                                "SNS:AddPermission",
+                                "SNS:Subscribe"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Ref": "NotifyTopic"
+                                }
+                            ],
+                            "Condition": {
+                                "StringEquals": {
+                                    "AWS:SourceOwner": {
+                                        "Fn::Ref": "AWS::AccountId"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Id": "PublicBroadcast",
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": [
+                                "SNS:Receive",
+                                "SNS:Subscribe"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Ref": "NotifyTopic"
+                                }
+                            ],
+                            "Condition": {
+                                "StringEquals": {
+                                    "SNS:Protocol": [
+                                        "lambda",
+                                        "sqs"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "ReplicationListenerRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "states.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ReplicationListenerRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:InvokeFunction"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::GetAtt": [
+                                                "EventFilterFunction",
+                                                "Arn"
+                                            ]
+                                        },
+                                        {
+                                            "Fn::GetAtt": [
+                                                "ArtifactLocatorFunction",
+                                                "Arn"
+                                            ]
+                                        },
+                                        {
+                                            "Fn::GetAtt": [
+                                                "LayerVersionPublisherFunction",
+                                                "Arn"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "sns:Publish"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Ref": "NotifyTopic"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ReplicationListener": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Properties": {
+                "DefinitionString": {
+                    "Fn::Sub": "{\"Comment\": \"Replication Listener\", \"StartAt\": \"Filter\", \"States\": {\"Filter\": {\"Type\": \"Task\", \"Resource\": \"${EventFilterFunction.Arn}\", \"ResultPath\": \"$\", \"Next\": \"ShouldProcess\"}, \"ShouldProcess\": {\"Type\": \"Choice\", \"Choices\": [{\"Variable\": \"$.ProcessEvent\", \"BooleanEquals\": true, \"Next\": \"LocateArtifact\"}], \"Default\": \"IgnoreEvent\"}, \"IgnoreEvent\": {\"Type\": \"Succeed\", \"Comment\": \"Ignore this event\"}, \"LocateArtifact\": {\"Type\": \"Task\", \"Resource\": \"${ArtifactLocatorFunction.Arn}\", \"ResultPath\": \"$.Artifact\", \"Next\": \"ArtifactCheck\"}, \"ArtifactCheck\": {\"Type\": \"Choice\", \"Choices\": [{\"Variable\": \"$.Artifact.Found\", \"BooleanEquals\": true, \"Next\": \"PublishNewVersion\"}, {\"And\": [{\"Variable\": \"$.Artifact.Found\", \"BooleanEquals\": false}, {\"Variable\": \"$.Artifact.ReadAttempts\", \"NumericGreaterThan\": 15}], \"Next\": \"ReplicationTimeout\"}], \"Default\": \"WaitForReplication\"}, \"ReplicationTimeout\": {\"Type\": \"Fail\", \"Error\": \"Timed out waiting for artifact to replicate\"}, \"WaitForReplication\": {\"Type\": \"Wait\", \"Seconds\": 60, \"Next\": \"LocateArtifact\"}, \"PublishNewVersion\": {\"Type\": \"Task\", \"Resource\": \"${LayerVersionPublisherFunction.Arn}\", \"ResultPath\": \"$.Layer\", \"Next\": \"Notify\"}, \"Notify\": {\"Type\": \"Task\", \"Resource\": \"arn:aws:states:::sns:publish\", \"Parameters\": {\"TopicArn\": \"${NotifyTopic}\", \"Message.$\": \"$.Layer\"}, \"End\": true}}}"
+                },
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "ReplicationListenerRole",
+                        "Arn"
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "ReplicationListenerEventRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "events.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ReplicationListenerEventRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "states:StartExecution"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Ref": "ReplicationListener"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ReplicationListenerEventRule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+                "State": "ENABLED",
+                "EventPattern": {
+                    "source": [
+                        "aws.s3"
+                    ],
+                    "detail-type": [
+                        "AWS API Call via CloudTrail"
+                    ],
+                    "detail": {
+                        "eventSource": [
+                            "s3.amazonaws.com"
+                        ],
+                        "eventName": [
+                            "PutObject"
+                        ],
+                        "requestParameters": {
+                            "bucketName": [
+                                {
+                                    "Fn::Ref": "ReplicationBucket"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "Targets": [
+                    {
+                        "Id": "ReplicationListenerEventTriggerWorkflow",
+                        "Arn": {
+                            "Fn::Ref": "ReplicationListener"
+                        },
+                        "RoleArn": {
+                            "Fn::GetAtt": [
+                                "ReplicationListenerEventRole",
+                                "Arn"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

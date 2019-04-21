@@ -8,4 +8,8 @@ pytestmark = [pytest.mark.local, pytest.mark.functional]
 
 
 def test_build():
+    expected = load_vector_as_template("replication_listener_template")
+
     test = replication_listener.build()
+
+    assert test.to_json() == expected.to_json()
