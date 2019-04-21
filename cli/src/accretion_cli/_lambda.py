@@ -1,5 +1,5 @@
 """"""
-from typing import Callable, Dict, Iterable
+from typing import Callable, Dict, Iterable, Optional
 
 from awacs import aws as AWS
 from troposphere import Parameter, Template, awslambda, iam
@@ -20,15 +20,20 @@ def lambda_function(
     name: str,
     role: iam.Role,
     runtime: str,
+    namespace: str,
     module: str,
     memory_size: int,
     timeout: int,
+    source_bucket: Optional[Parameter] = None,
 ) -> awslambda.Function:
+    if source_bucket is None:
+        source_bucket = bucket_name
+
     return awslambda.Function(
         name,
         Role=role.get_att("Arn"),
-        Code=awslambda.Code(S3Bucket=bucket_name.ref(), S3Key=workers_key.ref()),
-        Handler=f"accretion_workers.layer_builder.{module}.lambda_handler",
+        Code=awslambda.Code(S3Bucket=source_bucket.ref(), S3Key=workers_key.ref()),
+        Handler=f"accretion_workers.{namespace}.{module}.lambda_handler",
         Environment=_lambda_environment(bucket_name),
         Runtime=runtime,
         Layers=[boto3_layer.ref()],

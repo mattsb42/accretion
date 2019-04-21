@@ -46,7 +46,11 @@ def build() -> Template:
     )
 
     _lambda_builder = partial(
-        lambda_function, bucket_name=bucket_name, workers_key=workers_key, boto3_layer=boto3_layer
+        lambda_function,
+        bucket_name=bucket_name,
+        workers_key=workers_key,
+        boto3_layer=boto3_layer,
+        namespace="layer_builder",
     )
     lambda_adder = partial(add_lambda_core, builder=builder, lambda_builder=_lambda_builder)
 

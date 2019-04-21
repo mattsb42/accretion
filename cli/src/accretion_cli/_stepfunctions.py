@@ -54,7 +54,7 @@ def add_artifact_builder(
     python36_builder: awslambda.Function,
     python37_builder: awslambda.Function,
     tags: Tags,
-):
+) -> stepfunctions.StateMachine:
     name = "ArtifactBuilderStateMachine"
 
     statement = invoke_statement_from_lambdas(parse_requirements, python36_builder, python37_builder)
@@ -70,7 +70,7 @@ def add_artifact_builder(
     )
 
     builder.add_resource(role)
-    builder.add_resource(sm)
+    return builder.add_resource(sm)
 
 
 def _replication_listener_workflow(
@@ -131,7 +131,7 @@ def add_replication_listener(
     publish_layer_func: awslambda.Function,
     notify_topic: sns.Topic,
     tags: Tags,
-):
+) -> stepfunctions.StateMachine:
     name = "ReplicationListener"
 
     lambda_statement = invoke_statement_from_lambdas(filter_func, locate_artifact_func, publish_layer_func)
@@ -149,4 +149,4 @@ def add_replication_listener(
     )
 
     builder.add_resource(role)
-    builder.add_resource(sm)
+    return builder.add_resource(sm)
