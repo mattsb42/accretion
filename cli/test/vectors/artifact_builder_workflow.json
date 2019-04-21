@@ -4,7 +4,7 @@
     "States": {
         "ParseRequirements": {
             "Type": "Task",
-            "Resource": "",
+            "Resource": "${ParseRequirementsFunction.Arn}",
             "Next": "SelectLanguage"
         },
         "SelectLanguage": {
@@ -18,6 +18,10 @@
             ],
             "Default": "UnknownLanguage"
         },
+        "UnknownLanguage": {
+            "Type": "Fail",
+            "Cause": "Invalid language"
+        },
         "BuildPython": {
             "Type": "Parallel",
             "Branches": [
@@ -26,7 +30,7 @@
                     "States": {
                         "BuildPython36": {
                             "Type": "Task",
-                            "Resource": "",
+                            "Resource": "${PythonBuilder36Function.Arn}",
                             "End": true
                         }
                     }
@@ -36,7 +40,7 @@
                     "States": {
                         "BuildPython37": {
                             "Type": "Task",
-                            "Resource": "",
+                            "Resource": "${PythonBuilder37Function.Arn}",
                             "End": true
                         }
                     }
@@ -44,10 +48,6 @@
             ],
             "ResultPath": "$.BuildResults",
             "End": true
-        },
-        "UnknownLanguage": {
-            "Type": "Fail",
-            "Cause": "Invalid language"
         }
     }
 }

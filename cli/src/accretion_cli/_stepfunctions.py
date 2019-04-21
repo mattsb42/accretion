@@ -1,8 +1,8 @@
 """AWS Step Functions state machines."""
 import json
 
-from troposphere import stepfunctions, Sub, awslambda, AWSObject, Tags, iam, Template, sns
-from typing import Dict
+from troposphere import stepfunctions, Sub, awslambda, AWSObject, Tags, Template, sns
+from typing import Dict, Iterable
 
 from ._iam import invoke_statement_from_lambdas, step_functions_role, publish_statement_from_topics
 
