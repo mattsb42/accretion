@@ -1,4 +1,5 @@
 """Given a new artifact, publish a new Layer."""
+import hashlib
 import json
 import os
 from typing import Iterator
@@ -73,10 +74,21 @@ def _set_layer_permissions(layer_arn: str, layer_version: str, manifest_key: str
     )
 
 
+def _key_hash(layer_arn: str, layer_version: int) -> str:
+    hasher = hashlib.sha256()
+
+    hasher.update(b"===Arn===")
+    hasher.update(layer_arn.encode("utf-8"))
+    hasher.update(b"===Version===")
+    hasher.update(str(layer_version).encode("utf-8"))
+
+    return hasher.hexdigest()
+
+
 def _publish_layer_manifest(
     project_name: str, layer_arn: str, layer_version: int, manifest_bucket: str, manifest_key: str
 ) -> str:
-    artifact_id = manifest_key[manifest_key.rindex("/") + 1 : manifest_key.rindex(".")]
+    artifact_id = _key_hash(layer_arn, layer_version)
     s3_key = f"{LAYER_MANIFESTS_PREFIX}{project_name}/{artifact_id}.layer"
 
     body = json.dumps(

@@ -155,7 +155,7 @@ def _build_zip() -> io.BytesIO:
     return buffer
 
 
-def _key_hash(installed: Iterable[Dict[str, str]]):
+def _key_hash(installed: Iterable[Dict[str, str]]) -> str:
     hasher = hashlib.sha256()
 
     hasher.update(b"===INSTALLED===")
