@@ -15,14 +15,17 @@ def read(*args):
 
 def get_version():
     """Reads the version from this module."""
-    init = read("src", "aws_encryption_sdk", "identifiers.py")
+    init = read("src", "accretion_workers", "__init__.py")
     return VERSION_RE.search(init).group(1)
 
 
 def get_requirements():
     """Reads the requirements file."""
-    requirements = read("requirements.txt")
-    return [r for r in requirements.strip().splitlines()]
+    try:
+        requirements = read("requirements.txt")
+        return [r for r in requirements.strip().splitlines()]
+    except FileNotFoundError:
+        return []
 
 
 setup(
