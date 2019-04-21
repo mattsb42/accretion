@@ -25,6 +25,10 @@ def lambda_handler(event, context):
             "ProcessEvent": boolean decision stating whether to continue processing event
         }
 
+    Required permissions:
+
+    * None
+
     :param event: CloudWatch Event record for S3:PutObject event
     :param context:
     :return:

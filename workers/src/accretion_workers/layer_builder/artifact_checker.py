@@ -68,6 +68,11 @@ def lambda_handler(event, context):
             "Runtimes": List of Lambda runtimes that Layer will support
         }
 
+    Required permissions:
+
+    * s3:GetObject for S3_BUCKET/accretion/manifests/*
+    * s3:GetObject for S3_BUCKET/accretion/artifacts/*
+
     :param event:
     :param context:
     :return:

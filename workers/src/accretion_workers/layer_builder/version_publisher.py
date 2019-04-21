@@ -125,6 +125,12 @@ def lambda_handler(event, context):
             }
         }
 
+    Required permissions:
+
+    * lambda:PublishLayerVersion for current account
+    * lambda:AddLayerVersionPermission for current account
+    * s3:PutObject for S3_BUCKET/accretion/layers/*
+
     :param event:
     :param context:
     :return:

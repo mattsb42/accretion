@@ -210,6 +210,11 @@ def lambda_handler(event, context):
             "ManifestKey": "S3 key containing job manifest"
         }
 
+    Required permissions:
+
+    * s3:PutObject for S3_BUCKET/accretion/artifacts/*
+    * s3:PutObject for S3_BUCKET/accretion/manifests/*
+
     :param event:
     :param context:
     :return:

@@ -94,6 +94,10 @@ def lambda_handler(event, context):
             "Requirements": ["List of requirements"]
         }
 
+    Required permissions:
+
+    * None
+
     :param event:
     :param context:
     :return:
