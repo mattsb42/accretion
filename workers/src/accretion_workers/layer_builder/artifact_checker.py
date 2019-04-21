@@ -23,10 +23,7 @@ def _setup():
 
 def _artifact_exists(artifact_key: str) -> bool:
     try:
-        _s3.head_object(
-            Bucket=_bucket_name,
-            Key=artifact_key
-        )
+        _s3.head_object(Bucket=_bucket_name, Key=artifact_key)
     except ClientError:
         return False
     else:
@@ -34,10 +31,7 @@ def _artifact_exists(artifact_key: str) -> bool:
 
 
 def _load_manifest(manifest_key: str) -> Dict:
-    response = _s3.get_object(
-        Bucket=_bucket_name,
-        Key=manifest_key,
-    )
+    response = _s3.get_object(Bucket=_bucket_name, Key=manifest_key)
     return json.loads(response["Body"].read().decode("utf-8"))
 
 
@@ -55,7 +49,8 @@ def lambda_handler(event, context):
 
         {
             "ResourceKey": "S3 key containing object that triggered event",
-            "ProcessEvent": boolean decision stating whether to continue processing event
+            "ProcessEvent": boolean decision stating whether to continue processing event,
+            "Artifact": [Optional] Return shape. Present on repeat runs.
         }
 
     Return shape:
@@ -64,10 +59,13 @@ def lambda_handler(event, context):
 
         {
             "Found": boolean statement whether artifact exists yet,
-            "ArtifactLocation": {
+            "ReadAttempts": number of attempts that have been made to read artifact,
+            "Location": {
                 "S3Bucket": "S3 bucket containing artifact",
                 "S3Key": "S3 key in bucket containing artifact"
-            }
+            },
+            "ProjectName": "project name to be used for Lambda Layer name",
+            "Runtimes": List of Lambda runtimes that Layer will support
         }
 
     :param event:
@@ -77,7 +75,16 @@ def lambda_handler(event, context):
     if not _is_setup:
         _setup()
 
+    previous_attempts = event.get("Artifact", dict(ReadAttempts=0))["ReadAttempts"]
+
     manifest = _load_manifest(event["ResourceKey"])
     artifact_location = dict(S3Bucket=_bucket_name, S3Key=manifest["ArtifactS3Key"])
     artifact_exists = _artifact_exists(manifest["ArtifactS3Key"])
-    return dict(Found=artifact_exists, ArtifactLocation=artifact_location)
+
+    return dict(
+        Found=artifact_exists,
+        ReadAttempts=previous_attempts + 1,
+        Location=artifact_location,
+        ProjectName=manifest["ProjectName"],
+        Runtimes=manifest["Runtimes"],
+    )
