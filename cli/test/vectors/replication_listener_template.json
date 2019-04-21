@@ -49,7 +49,7 @@
                 "IsLogging": true,
                 "IsMultiRegionTrail": false,
                 "S3BucketName": {
-                    "Fn::Ref": "RegionalBucket"
+                    "Ref": "RegionalBucket"
                 },
                 "S3KeyPrefix": "accretion/cloudtrail/",
                 "Tags": [
@@ -111,24 +111,24 @@
                 },
                 "Code": {
                     "S3Bucket": {
-                        "Fn::Ref": "ReplicationBucket"
+                        "Ref": "ReplicationBucket"
                     },
                     "S3Key": {
-                        "Fn::Ref": "WorkersS3Key"
+                        "Ref": "WorkersS3Key"
                     }
                 },
                 "Handler": "accretion_workers.layer_builder.event_filter.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {
-                            "Fn::Ref": "ReplicationBucket"
+                            "Ref": "ReplicationBucket"
                         }
                     }
                 },
                 "Runtime": "python3.7",
                 "Layers": [
                     {
-                        "Fn::Ref": "Boto3LambdaLayer"
+                        "Ref": "Boto3LambdaLayer"
                     }
                 ],
                 "MemorySize": 128,
@@ -206,24 +206,24 @@
                 },
                 "Code": {
                     "S3Bucket": {
-                        "Fn::Ref": "ReplicationBucket"
+                        "Ref": "ReplicationBucket"
                     },
                     "S3Key": {
-                        "Fn::Ref": "WorkersS3Key"
+                        "Ref": "WorkersS3Key"
                     }
                 },
                 "Handler": "accretion_workers.layer_builder.artifact_checker.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {
-                            "Fn::Ref": "ReplicationBucket"
+                            "Ref": "ReplicationBucket"
                         }
                     }
                 },
                 "Runtime": "python3.7",
                 "Layers": [
                     {
-                        "Fn::Ref": "Boto3LambdaLayer"
+                        "Ref": "Boto3LambdaLayer"
                     }
                 ],
                 "MemorySize": 512,
@@ -298,24 +298,24 @@
                 },
                 "Code": {
                     "S3Bucket": {
-                        "Fn::Ref": "ReplicationBucket"
+                        "Ref": "ReplicationBucket"
                     },
                     "S3Key": {
-                        "Fn::Ref": "WorkersS3Key"
+                        "Ref": "WorkersS3Key"
                     }
                 },
                 "Handler": "accretion_workers.layer_builder.version_publisher.lambda_handler",
                 "Environment": {
                     "Variables": {
                         "S3_BUCKET": {
-                            "Fn::Ref": "RegionalBucket"
+                            "Ref": "RegionalBucket"
                         }
                     }
                 },
                 "Runtime": "python3.7",
                 "Layers": [
                     {
-                        "Fn::Ref": "Boto3LambdaLayer"
+                        "Ref": "Boto3LambdaLayer"
                     }
                 ],
                 "MemorySize": 1024,
@@ -337,7 +337,7 @@
             "Properties": {
                 "Topics": [
                     {
-                        "Fn::Ref": "NotifyTopic"
+                        "Ref": "NotifyTopic"
                     }
                 ],
                 "PolicyDocument": {
@@ -360,13 +360,13 @@
                             ],
                             "Resource": [
                                 {
-                                    "Fn::Ref": "NotifyTopic"
+                                    "Ref": "NotifyTopic"
                                 }
                             ],
                             "Condition": {
                                 "StringEquals": {
                                     "AWS:SourceOwner": {
-                                        "Fn::Ref": "AWS::AccountId"
+                                        "Ref": "AWS::AccountId"
                                     }
                                 }
                             }
@@ -381,7 +381,7 @@
                             ],
                             "Resource": [
                                 {
-                                    "Fn::Ref": "NotifyTopic"
+                                    "Ref": "NotifyTopic"
                                 }
                             ],
                             "Condition": {
@@ -451,7 +451,7 @@
                                     ],
                                     "Resource": [
                                         {
-                                            "Fn::Ref": "NotifyTopic"
+                                            "Ref": "NotifyTopic"
                                         }
                                     ]
                                 }
@@ -509,7 +509,7 @@
                                     ],
                                     "Resource": [
                                         {
-                                            "Fn::Ref": "ReplicationListener"
+                                            "Ref": "ReplicationListener"
                                         }
                                     ]
                                 }
@@ -540,7 +540,7 @@
                         "requestParameters": {
                             "bucketName": [
                                 {
-                                    "Fn::Ref": "ReplicationBucket"
+                                    "Ref": "ReplicationBucket"
                                 }
                             ]
                         }
@@ -550,7 +550,7 @@
                     {
                         "Id": "ReplicationListenerEventTriggerWorkflow",
                         "Arn": {
-                            "Fn::Ref": "ReplicationListener"
+                            "Ref": "ReplicationListener"
                         },
                         "RoleArn": {
                             "Fn::GetAtt": [
