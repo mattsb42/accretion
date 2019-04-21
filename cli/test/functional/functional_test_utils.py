@@ -1,7 +1,7 @@
 """"""
-from pathlib import Path
 import json
 import os
+from pathlib import Path
 from typing import Dict
 
 from troposphere.template_generator import TemplateGenerator

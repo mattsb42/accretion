@@ -1,6 +1,5 @@
 """Functional tests for ``accretion_cli._templates.artifact_builder``."""
 import pytest
-
 from accretion_cli._templates import artifact_builder
 
 from ..functional_test_utils import load_vector_as_template

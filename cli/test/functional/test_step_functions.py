@@ -2,7 +2,6 @@
 import json
 
 import pytest
-
 from accretion_cli._stepfunctions import _artifact_builder_workflow, _replication_listener_workflow
 
 from .functional_test_utils import load_vector
@@ -25,7 +24,7 @@ def test_artifact_builder_workflow():
     test = _artifact_builder_workflow(
         parse_requirements_arn="${ParseRequirementsFunction.Arn}",
         build_python_36_arn="${PythonBuilder36Function.Arn}",
-        build_python_37_arn="${PythonBuilder37Function.Arn}"
+        build_python_37_arn="${PythonBuilder37Function.Arn}",
     )
 
     _assert_equal_workflows(test, expected)
@@ -38,7 +37,7 @@ def test_replication_listener_workflow():
         filter_arn="${EventFilterFunction.Arn}",
         locate_artifact_arn="${ArtifactLocatorFunction.Arn}",
         publish_layer_arn="${LayerVersionPublisherFunction.Arn}",
-        sns_topic_arn="${NotifyTopic}"
+        sns_topic_arn="${NotifyTopic}",
     )
 
     _assert_equal_workflows(test, expected)

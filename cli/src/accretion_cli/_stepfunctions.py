@@ -1,10 +1,10 @@
 """AWS Step Functions state machines."""
 import json
-
-from troposphere import stepfunctions, Sub, awslambda, AWSObject, Tags, Template, sns
 from typing import Dict, Iterable
 
-from ._iam import invoke_statement_from_lambdas, step_functions_role, publish_statement_from_topics
+from troposphere import AWSObject, Sub, Tags, Template, awslambda, sns, stepfunctions
+
+from ._iam import invoke_statement_from_lambdas, publish_statement_from_topics, step_functions_role
 
 
 def _resource_to_sub_reference(resource: AWSObject) -> str:

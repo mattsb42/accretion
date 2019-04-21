@@ -2,12 +2,11 @@
 from functools import partial
 from typing import Callable
 
-from troposphere import Template, Parameter, awslambda
-
 from accretion_cli import DEFAULT_TAGS
 from accretion_cli._iam import s3_put_object_statement
-from accretion_cli._lambda import lambda_function, add_lambda_core
+from accretion_cli._lambda import add_lambda_core, lambda_function
 from accretion_cli._stepfunctions import add_artifact_builder
+from troposphere import Parameter, Template, awslambda
 
 
 def _add_parse_requirements_resources(lambda_adder: Callable) -> awslambda.Function:

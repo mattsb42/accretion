@@ -1,11 +1,11 @@
 """"""
 from typing import Callable, Dict, Iterable
 
-from troposphere import awslambda, Template, Parameter, iam, Tags
 from awacs import aws as AWS
+from troposphere import Parameter, Template, awslambda, iam
 
-from ._iam import lambda_role
 from . import DEFAULT_TAGS
+from ._iam import lambda_role
 
 
 def _lambda_environment(bucket_name: Parameter) -> awslambda.Environment:

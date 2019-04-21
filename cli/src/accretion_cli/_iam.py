@@ -1,9 +1,9 @@
 """"""
 from typing import Iterable
 
-from troposphere import AWS_ACCOUNT_ID, AWS_PARTITION, AWS_REGION, Sub, iam, awslambda, sns
-from awacs import aws as AWS, logs as LOGS, sts as STS, awslambda as AWSLAMBDA, s3 as S3, states as STATES, sns as SNS
+from awacs import aws as AWS, awslambda as AWSLAMBDA, logs as LOGS, s3 as S3, sns as SNS, states as STATES, sts as STS
 from awacs.helpers.trust import make_service_domain_name
+from troposphere import AWS_ACCOUNT_ID, AWS_PARTITION, AWS_REGION, Sub, awslambda, iam, sns
 
 
 def _basic_lambda_statement() -> AWS.Statement:
