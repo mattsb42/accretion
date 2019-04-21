@@ -1,0 +1,53 @@
+{
+    "Comment": "Artifact Builder",
+    "StartAt": "ParseRequirements",
+    "States": {
+        "ParseRequirements": {
+            "Type": "Task",
+            "Resource": "",
+            "Next": "SelectLanguage"
+        },
+        "SelectLanguage": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.Language",
+                    "StringEquals": "python",
+                    "Next": "BuildPython"
+                }
+            ],
+            "Default": "UnknownLanguage"
+        },
+        "BuildPython": {
+            "Type": "Parallel",
+            "Branches": [
+                {
+                    "StartAt": "BuildPython36",
+                    "States": {
+                        "BuildPython36": {
+                            "Type": "Task",
+                            "Resource": "",
+                            "End": true
+                        }
+                    }
+                },
+                {
+                    "StartAt": "BuildPython37",
+                    "States": {
+                        "BuildPython37": {
+                            "Type": "Task",
+                            "Resource": "",
+                            "End": true
+                        }
+                    }
+                }
+            ],
+            "ResultPath": "$.BuildResults",
+            "End": true
+        },
+        "UnknownLanguage": {
+            "Type": "Fail",
+            "Cause": "Invalid language"
+        }
+    }
+}
