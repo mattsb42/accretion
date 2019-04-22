@@ -3,18 +3,19 @@ import itertools
 from functools import partial
 from typing import Callable
 
+from awacs import s3 as S3
+from troposphere import AWS_PARTITION, Parameter, Sub, Template, awslambda, cloudtrail, events, s3, sns, stepfunctions
+
 from accretion_cli import DEFAULT_TAGS
 from accretion_cli._iam import (
     events_trigger_stepfuntions_role,
+    lambda_layer_permissions,
     s3_get_object_statement,
     s3_put_object_statement,
-    lambda_layer_permissions,
 )
 from accretion_cli._lambda import add_lambda_core, lambda_function
 from accretion_cli._sns import public_topic
 from accretion_cli._stepfunctions import add_replication_listener
-from awacs import s3 as S3
-from troposphere import AWS_PARTITION, Parameter, Sub, Template, awslambda, cloudtrail, events, s3, sns, stepfunctions
 
 
 def _add_regional_bucket(builder: Template) -> (s3.Bucket, s3.BucketPolicy):
@@ -32,7 +33,7 @@ def _add_regional_bucket(builder: Template) -> (s3.Bucket, s3.BucketPolicy):
                     Effect="Allow",
                     Principal=dict(Service="cloudtrail.amazonaws.com"),
                     Action=S3.GetBucketAcl,
-                    Resource=Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{bucket.title}}}")
+                    Resource=Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{bucket.title}}}"),
                 ),
                 dict(
                     Sid="CloudTrailWrite",
@@ -40,10 +41,10 @@ def _add_regional_bucket(builder: Template) -> (s3.Bucket, s3.BucketPolicy):
                     Principal=dict(Service="cloudtrail.amazonaws.com"),
                     Action=S3.PutObject,
                     Resource=Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{bucket.title}}}/accretion/cloudtrail/*"),
-                    Condition=dict(StringEquals={"s3:x-amz-acl": "bucket-owner-full-control"})
-                )
-            ]
-        )
+                    Condition=dict(StringEquals={"s3:x-amz-acl": "bucket-owner-full-control"}),
+                ),
+            ],
+        ),
     )
     builder.add_resource(policy)
 
@@ -169,7 +170,12 @@ def build() -> Template:
     regional_bucket, regional_bucket_policy = _add_regional_bucket(builder)
 
     # CloudTrail replication event trail
-    _add_cloudtrail_listener(builder=builder, replication_bucket=replication_bucket, log_bucket=regional_bucket, log_bucket_policy=regional_bucket_policy)
+    _add_cloudtrail_listener(
+        builder=builder,
+        replication_bucket=replication_bucket,
+        log_bucket=regional_bucket,
+        log_bucket_policy=regional_bucket_policy,
+    )
 
     common_lambda_args = dict(
         source_bucket=replication_bucket,
