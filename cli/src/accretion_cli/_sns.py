@@ -7,7 +7,7 @@ from troposphere import AccountId, sns
 
 def _owner_policy(topic: sns.Topic) -> Dict:
     return dict(
-        Id="OwnerPolicy",
+        Sid="OwnerPolicy",
         Effect=AWS.Allow,
         Principal=AWS.Principal("*"),
         Action=[
@@ -21,18 +21,18 @@ def _owner_policy(topic: sns.Topic) -> Dict:
             "SNS:AddPermission",
             "SNS:Subscribe",
         ],
-        Resource=[topic.ref()],
+        Resource=topic.ref(),
         Condition=dict(StringEquals={"AWS:SourceOwner": AccountId}),
     )
 
 
 def _public_broadcast(topic: sns.Topic) -> Dict:
     return dict(
-        Id="PublicBroadcast",
+        Sid="PublicBroadcast",
         Effect=AWS.Allow,
         Principal=AWS.Principal("*"),
         Action=["SNS:Receive", "SNS:Subscribe"],
-        Resource=[topic.ref()],
+        Resource=topic.ref(),
         Condition=dict(StringEquals={"SNS:Protocol": ["lambda", "sqs"]}),
     )
 
