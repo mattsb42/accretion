@@ -1,2 +1,3 @@
 attrs
 troposphere[policy]
+awacs >= 0.9.0

@@ -14,15 +14,6 @@ from awacs import (
 from awacs.helpers.trust import make_service_domain_name
 from troposphere import AWS_ACCOUNT_ID, AWS_PARTITION, AWS_REGION, Sub, awslambda, iam, sns, stepfunctions
 
-try:
-    from awacs.awslambda import PublishLayerVersion, AddLayerVersionPermission
-except ImportError:
-    # Troposphere doesn't know about these yet (0.9.0).
-    # They are in the unreleased source, though,
-    # so this should be removed once >0.9.0 is released.
-    PublishLayerVersion = AWSLAMBDA.Action("PublishLayerVersion")
-    AddLayerVersionPermission = AWSLAMBDA.Action("AddLayerVersionPermission")
-
 
 def _basic_lambda_statement() -> AWS.Statement:
     return AWS.Statement(
@@ -66,7 +57,7 @@ def lambda_layer_permissions() -> Iterable[AWS.Statement]:
     return [
         AWS.Statement(
             Effect=AWS.Allow,
-            Action=[PublishLayerVersion, AddLayerVersionPermission],
+            Action=[AWSLAMBDA.PublishLayerVersion, AWSLAMBDA.AddLayerVersionPermission],
             Resource=[Sub(f"arn:${{{AWS_PARTITION}}}:lambda:${{{AWS_REGION}}}:${{{AWS_ACCOUNT_ID}}}:layer:*")],
         )
     ]
