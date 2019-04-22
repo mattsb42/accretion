@@ -2,10 +2,9 @@
 from typing import Callable, Dict, Iterable, Optional
 
 from awacs import aws as AWS
-from troposphere import Parameter, Template, awslambda, iam
+from troposphere import Parameter, Tags, Template, awslambda, iam
 
-from . import DEFAULT_TAGS
-from ._iam import lambda_role
+from .iam import lambda_role
 
 
 def _lambda_environment(bucket_name: Parameter) -> awslambda.Environment:
@@ -24,6 +23,7 @@ def lambda_function(
     module: str,
     memory_size: int,
     timeout: int,
+    tags: Tags,
     source_bucket: Optional[Parameter] = None,
 ) -> awslambda.Function:
     if source_bucket is None:
@@ -39,7 +39,7 @@ def lambda_function(
         Layers=[boto3_layer.ref()],
         MemorySize=memory_size,
         Timeout=timeout,
-        Tags=DEFAULT_TAGS,
+        Tags=tags,
     )
 
 

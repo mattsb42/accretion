@@ -4,18 +4,31 @@ from functools import partial
 from typing import Callable
 
 from awacs import s3 as S3
-from troposphere import AWS_PARTITION, Parameter, Sub, Template, awslambda, cloudtrail, events, s3, sns, stepfunctions
+from troposphere import (
+    AWS_PARTITION,
+    Parameter,
+    Sub,
+    Tags,
+    Template,
+    awslambda,
+    cloudtrail,
+    events,
+    s3,
+    sns,
+    stepfunctions,
+)
 
-from accretion_cli import DEFAULT_TAGS
-from accretion_cli._iam import (
+from accretion_cli._templates.services.awslambda import add_lambda_core, lambda_function
+from accretion_cli._templates.services.iam import (
     events_trigger_stepfuntions_role,
     lambda_layer_permissions,
     s3_get_object_statement,
     s3_put_object_statement,
 )
-from accretion_cli._lambda import add_lambda_core, lambda_function
-from accretion_cli._sns import public_topic
-from accretion_cli._stepfunctions import add_replication_listener
+from accretion_cli._templates.services.sns import public_topic
+from accretion_cli._templates.services.stepfunctions import add_replication_listener
+
+DEFAULT_TAGS = Tags(Accretion="ReplicationListener")
 
 
 def _add_regional_bucket(builder: Template) -> (s3.Bucket, s3.BucketPolicy):
@@ -183,6 +196,7 @@ def build() -> Template:
         boto3_layer=boto3_layer,
         runtime="python3.7",
         namespace="layer_builder",
+        tags=DEFAULT_TAGS,
     )
 
     pre_layer_lambda_adder = partial(

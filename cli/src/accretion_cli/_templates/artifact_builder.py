@@ -2,12 +2,13 @@
 from functools import partial
 from typing import Callable
 
-from troposphere import Parameter, Template, awslambda
+from troposphere import Parameter, Tags, Template, awslambda
 
-from accretion_cli import DEFAULT_TAGS
-from accretion_cli._iam import s3_put_object_statement
-from accretion_cli._lambda import add_lambda_core, lambda_function
-from accretion_cli._stepfunctions import add_artifact_builder
+from accretion_cli._templates.services.awslambda import add_lambda_core, lambda_function
+from accretion_cli._templates.services.iam import s3_put_object_statement
+from accretion_cli._templates.services.stepfunctions import add_artifact_builder
+
+DEFAULT_TAGS = Tags(Accretion="ArtifactBuilder")
 
 
 def _add_parse_requirements_resources(lambda_adder: Callable) -> awslambda.Function:
@@ -52,6 +53,7 @@ def build() -> Template:
         workers_key=workers_key,
         boto3_layer=boto3_layer,
         namespace="artifact_builder",
+        tags=DEFAULT_TAGS,
     )
     lambda_adder = partial(add_lambda_core, builder=builder, lambda_builder=_lambda_builder)
 

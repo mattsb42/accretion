@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from accretion_cli._stepfunctions import _artifact_builder_workflow, _replication_listener_workflow
+from accretion_cli._templates.services.stepfunctions import _artifact_builder_workflow, _replication_listener_workflow
 
 from .functional_test_utils import load_vector
 
