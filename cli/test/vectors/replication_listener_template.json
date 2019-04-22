@@ -26,8 +26,51 @@
                 ]
             }
         },
+        "RegionalBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "RegionalBucket"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "CloudTrailAclCheck",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "cloudtrail.amazonaws.com"
+                            },
+                            "Action": "s3:GetBucketAcl",
+                            "Resource": {
+                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${RegionalBucket}"
+                            }
+                        },
+                        {
+                            "Sid": "CloudTrailWrite",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "cloudtrail.amazonaws.com"
+                            },
+                            "Action": "s3:PutObject",
+                            "Resource": {
+                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${RegionalBucket}/accretion/cloudtrail/*"
+                            },
+                            "Condition": {
+                                "StringEquals": {
+                                    "s3:x-amz-acl": "bucket-owner-full-control"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
         "ReplicationListenerTrail": {
             "Type": "AWS::CloudTrail::Trail",
+            "DependsOn": [
+                "RegionalBucketPolicy"
+            ],
             "Properties": {
                 "EnableLogFileValidation": true,
                 "EventSelectors": [
@@ -280,6 +323,29 @@
                                             "Fn::Sub": "arn:${AWS::Partition}:s3:::${RegionalBucket}/accretion/layers/*"
                                         }
                                     ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ReplicationBucket}/accretion/artifacts/*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:PublishLayerVersion",
+                                        "lambda:AddLayerVersionPermission"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:layer:*"
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -344,7 +410,7 @@
                     "Version": "2008-10-17",
                     "Statement": [
                         {
-                            "Id": "OwnerPolicy",
+                            "Sid": "OwnerPolicy",
                             "Effect": "Allow",
                             "Principal": "*",
                             "Action": [
@@ -358,11 +424,9 @@
                                 "SNS:AddPermission",
                                 "SNS:Subscribe"
                             ],
-                            "Resource": [
-                                {
-                                    "Ref": "NotifyTopic"
-                                }
-                            ],
+                            "Resource": {
+                                "Ref": "NotifyTopic"
+                            },
                             "Condition": {
                                 "StringEquals": {
                                     "AWS:SourceOwner": {
@@ -372,18 +436,16 @@
                             }
                         },
                         {
-                            "Id": "PublicBroadcast",
+                            "Sid": "PublicBroadcast",
                             "Effect": "Allow",
                             "Principal": "*",
                             "Action": [
                                 "SNS:Receive",
                                 "SNS:Subscribe"
                             ],
-                            "Resource": [
-                                {
-                                    "Ref": "NotifyTopic"
-                                }
-                            ],
+                            "Resource": {
+                                "Ref": "NotifyTopic"
+                            },
                             "Condition": {
                                 "StringEquals": {
                                     "SNS:Protocol": [
