@@ -1,24 +1,61 @@
 """Build the CloudFormation template for the Accretion replication listener."""
+import itertools
 from functools import partial
 from typing import Callable
 
 from accretion_cli import DEFAULT_TAGS
-from accretion_cli._iam import events_trigger_stepfuntions_role, s3_get_object_statement, s3_put_object_statement
+from accretion_cli._iam import (
+    events_trigger_stepfuntions_role,
+    s3_get_object_statement,
+    s3_put_object_statement,
+    lambda_layer_permissions,
+)
 from accretion_cli._lambda import add_lambda_core, lambda_function
 from accretion_cli._sns import public_topic
 from accretion_cli._stepfunctions import add_replication_listener
+from awacs import s3 as S3
 from troposphere import AWS_PARTITION, Parameter, Sub, Template, awslambda, cloudtrail, events, s3, sns, stepfunctions
 
 
-def _add_regional_bucket(builder: Template) -> s3.Bucket:
-    return builder.add_resource(s3.Bucket("RegionalBucket", Tags=DEFAULT_TAGS))
+def _add_regional_bucket(builder: Template) -> (s3.Bucket, s3.BucketPolicy):
+    name = "RegionalBucket"
+    bucket = builder.add_resource(s3.Bucket(name, Tags=DEFAULT_TAGS))
+
+    policy = s3.BucketPolicy(
+        f"{name}Policy",
+        Bucket=bucket.ref(),
+        PolicyDocument=dict(
+            Version="2012-10-17",
+            Statement=[
+                dict(
+                    Sid="CloudTrailAclCheck",
+                    Effect="Allow",
+                    Principal=dict(Service="cloudtrail.amazonaws.com"),
+                    Action=S3.GetBucketAcl,
+                    Resource=Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{bucket.title}}}")
+                ),
+                dict(
+                    Sid="CloudTrailWrite",
+                    Effect="Allow",
+                    Principal=dict(Service="cloudtrail.amazonaws.com"),
+                    Action=S3.PutObject,
+                    Resource=Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{bucket.title}}}/accretion/cloudtrail/*"),
+                    Condition=dict(StringEquals={"s3:x-amz-acl": "bucket-owner-full-control"})
+                )
+            ]
+        )
+    )
+    builder.add_resource(policy)
+
+    return bucket, policy
 
 
 def _add_cloudtrail_listener(
-    builder: Template, replication_bucket: Parameter, log_bucket: s3.Bucket
+    builder: Template, replication_bucket: Parameter, log_bucket: s3.Bucket, log_bucket_policy: s3.BucketPolicy
 ) -> cloudtrail.Trail:
     trail = cloudtrail.Trail(
         "ReplicationListenerTrail",
+        DependsOn=[log_bucket_policy.title],
         EnableLogFileValidation=True,
         EventSelectors=[
             cloudtrail.EventSelector(
@@ -89,8 +126,14 @@ def _add_artifact_locator(lambda_adder: Callable, replication_bucket: Parameter)
     )
 
 
-def _add_layer_version_publisher(lambda_adder: Callable, regional_bucket: s3.Bucket) -> awslambda.Function:
-    statements = s3_put_object_statement(f"${{{regional_bucket.title}}}/accretion/layers/")
+def _add_layer_version_publisher(
+    lambda_adder: Callable, regional_bucket: s3.Bucket, replication_bucket: Parameter
+) -> awslambda.Function:
+    statements = itertools.chain(
+        s3_put_object_statement(f"${{{regional_bucket.title}}}/accretion/layers/"),
+        s3_get_object_statement(f"${{{replication_bucket.title}}}/accretion/artifacts/"),
+        lambda_layer_permissions(),
+    )
 
     return lambda_adder(
         base_name="LayerVersionPublisher",
@@ -123,10 +166,10 @@ def build() -> Template:
     )
 
     # regional bucket
-    regional_bucket = _add_regional_bucket(builder)
+    regional_bucket, regional_bucket_policy = _add_regional_bucket(builder)
 
     # CloudTrail replication event trail
-    _add_cloudtrail_listener(builder=builder, replication_bucket=replication_bucket, log_bucket=regional_bucket)
+    _add_cloudtrail_listener(builder=builder, replication_bucket=replication_bucket, log_bucket=regional_bucket, log_bucket_policy=regional_bucket_policy)
 
     common_lambda_args = dict(
         source_bucket=replication_bucket,
@@ -153,7 +196,7 @@ def build() -> Template:
     artifact_locator = _add_artifact_locator(lambda_adder=pre_layer_lambda_adder, replication_bucket=replication_bucket)
     #  layer version publisher
     layer_version_publisher = _add_layer_version_publisher(
-        lambda_adder=layer_builder_lambda_adder, regional_bucket=regional_bucket
+        lambda_adder=layer_builder_lambda_adder, regional_bucket=regional_bucket, replication_bucket=replication_bucket
     )
 
     # Notify Topic and Policy
