@@ -26,8 +26,11 @@ accretion_common
    :target: https://ci.appveyor.com/project/REPLACEME
    :alt: AppVeyor Test Status
 
-.. important::
+.. warning::
 
-    This project is a work in progress and is not yet ready for use.
+    This package is intended only for internal use within Accretion.
+    This documentation is provided for information purposes only.
+    No guarantee is provided on the modules and APIs described in here remaining consistent.
+    Directly reference at your own risk.
 
 Common resources for Accretion components.
