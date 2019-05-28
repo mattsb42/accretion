@@ -8,4 +8,4 @@ with AWS Lambda.
 
 For details, please see the `project documentation`_
 
-.. _project documentation: https://accretion.readthedocs.io/en/stable/
+.. _project documentation: https://accretion.readthedocs.io/en/latest/
