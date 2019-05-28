@@ -77,19 +77,23 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    if not _is_setup:
-        _setup()
+    try:
+        if not _is_setup:
+            _setup()
 
-    previous_attempts = event.get("Artifact", dict(ReadAttempts=0))["ReadAttempts"]
+        previous_attempts = event.get("Artifact", dict(ReadAttempts=0))["ReadAttempts"]
 
-    manifest = _load_manifest(event["ResourceKey"])
-    artifact_location = dict(S3Bucket=_bucket_name, S3Key=manifest["ArtifactS3Key"])
-    artifact_exists = _artifact_exists(manifest["ArtifactS3Key"])
+        manifest = _load_manifest(event["ResourceKey"])
+        artifact_location = dict(S3Bucket=_bucket_name, S3Key=manifest["ArtifactS3Key"])
+        artifact_exists = _artifact_exists(manifest["ArtifactS3Key"])
 
-    return dict(
-        Found=artifact_exists,
-        ReadAttempts=previous_attempts + 1,
-        Location=artifact_location,
-        ProjectName=manifest["ProjectName"],
-        Runtimes=manifest["Runtimes"],
-    )
+        return dict(
+            Found=artifact_exists,
+            ReadAttempts=previous_attempts + 1,
+            Location=artifact_location,
+            ProjectName=manifest["ProjectName"],
+            Runtimes=manifest["Runtimes"],
+        )
+    except Exception:
+        # TODO: Turn these into known-cause state machine failures.
+        raise

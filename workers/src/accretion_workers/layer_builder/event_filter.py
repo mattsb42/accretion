@@ -33,5 +33,9 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    s3_key = event["detail"]["requestParameters"]["key"]
-    return {"ProcessEvent": s3_key.startswith(ARTIFACT_MANIFESTS_PREFIX), "ResourceKey": s3_key}
+    try:
+        s3_key = event["detail"]["requestParameters"]["key"]
+        return {"ProcessEvent": s3_key.startswith(ARTIFACT_MANIFESTS_PREFIX), "ResourceKey": s3_key}
+    except Exception:
+        # TODO: Turn these into known-cause state machine failures.
+        raise

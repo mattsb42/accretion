@@ -102,16 +102,20 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    _validate_name(event["Name"])
+    try:
+        _validate_name(event["Name"])
 
-    valid_language = _validate_languge(event["Language"])
-    valid_requirements = _normalize_requirements(
-        requirements_type=event["Requirements"]["Type"],
-        requirements=event["Requirements"]["Requirements"],
-    )
+        valid_language = _validate_languge(event["Language"])
+        valid_requirements = _normalize_requirements(
+            requirements_type=event["Requirements"]["Type"],
+            requirements=event["Requirements"]["Requirements"],
+        )
 
-    return {
-        "Name": event["Name"],
-        "Language": valid_language,
-        "Requirements": valid_requirements,
-    }
+        return {
+            "Name": event["Name"],
+            "Language": valid_language,
+            "Requirements": valid_requirements,
+        }
+    except Exception:
+        # TODO: Turn these into known-cause state machine failures.
+        raise

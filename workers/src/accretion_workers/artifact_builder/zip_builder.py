@@ -221,6 +221,25 @@ def _runtime_name():
         raise Exception(f"Unexpected runtime: {sys.version_info}")
 
 
+def build_artifact(requirements: Iterable[str]) -> Iterable[Dict[str, str]]:
+    _build_venv()
+    _build_requirements(*requirements)
+    _install_requirements_to_build()
+    return _parse_install_log()
+
+
+def _upload_artifacts(name: str, requirements: Iterable[str], installed: Iterable[Dict[str, str]]):
+    artifact_key = _build_and_upload_zip(name, installed)
+    manifest_key = _write_manifest(
+        project_name=name,
+        artifact_key=artifact_key,
+        requirements=requirements,
+        installed=installed,
+        runtimes=[_runtime_name()],
+    )
+    return artifact_key, manifest_key
+
+
 def lambda_handler(event, context):
     """
     Event shape:
@@ -256,25 +275,14 @@ def lambda_handler(event, context):
         if not _is_setup:
             _setup()
 
-        _build_venv()
-        _build_requirements(*event["Requirements"])
-        _install_requirements_to_build()
-        installed = _parse_install_log()
-        artifact_key = _build_and_upload_zip(event["Name"], installed)
-        manifest_key = _write_manifest(
-            project_name=event["Name"],
-            artifact_key=artifact_key,
-            requirements=event["Requirements"],
-            installed=installed,
-            runtimes=[_runtime_name()],
-        )
+        installed = build_artifact(event["Requirements"])
+        artifact_key, manifest_key = _upload_artifacts(event["Name"], event["Requirements"], installed)
         return {
             "Installed": installed,
             "Runtimes": [_runtime_name()],
             "ArtifactKey": artifact_key,
             "ManifestKey": manifest_key,
         }
-    except ZipBuilderError as error:
-        raise
     except Exception:
+        # TODO: Turn these into known-cause state machine failures.
         raise

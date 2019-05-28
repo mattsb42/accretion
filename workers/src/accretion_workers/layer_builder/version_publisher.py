@@ -147,30 +147,34 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
-    if not _is_setup:
-        _setup()
+    try:
+        if not _is_setup:
+            _setup()
 
-    project_name = event["Artifact"]["ProjectName"]
-    manifest_bucket = artifact_bucket = event["Artifact"]["Location"]["S3Bucket"]
-    artifact_key = event["Artifact"]["Location"]["S3Key"]
-    manifest_key = event["ResourceKey"]
+        project_name = event["Artifact"]["ProjectName"]
+        manifest_bucket = artifact_bucket = event["Artifact"]["Location"]["S3Bucket"]
+        artifact_key = event["Artifact"]["Location"]["S3Key"]
+        manifest_key = event["ResourceKey"]
 
-    layer_arn, layer_version = _publish_layer(
-        project_name=project_name,
-        artifact_bucket=artifact_bucket,
-        artifact_key=artifact_key,
-        runtimes=event["Artifact"]["Runtimes"],
-    )
-    _set_layer_permissions(layer_arn=layer_arn, layer_version=layer_version, manifest_key=manifest_key)
-    layer_manifest_key = _publish_layer_manifest(
-        project_name=project_name,
-        layer_arn=layer_arn,
-        layer_version=layer_version,
-        manifest_bucket=manifest_bucket,
-        manifest_key=manifest_key,
-    )
-    return dict(
-        ProjectName=project_name,
-        Layer=dict(Arn=layer_arn, Version=layer_version),
-        Manifest=dict(S3Bucket=_bucket_name, S3Key=layer_manifest_key),
-    )
+        layer_arn, layer_version = _publish_layer(
+            project_name=project_name,
+            artifact_bucket=artifact_bucket,
+            artifact_key=artifact_key,
+            runtimes=event["Artifact"]["Runtimes"],
+        )
+        _set_layer_permissions(layer_arn=layer_arn, layer_version=layer_version, manifest_key=manifest_key)
+        layer_manifest_key = _publish_layer_manifest(
+            project_name=project_name,
+            layer_arn=layer_arn,
+            layer_version=layer_version,
+            manifest_bucket=manifest_bucket,
+            manifest_key=manifest_key,
+        )
+        return dict(
+            ProjectName=project_name,
+            Layer=dict(Arn=layer_arn, Version=layer_version),
+            Manifest=dict(S3Bucket=_bucket_name, S3Key=layer_manifest_key),
+        )
+    except Exception:
+        # TODO: Turn these into known-cause state machine failures.
+        raise
