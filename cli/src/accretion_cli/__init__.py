@@ -3,11 +3,11 @@ from typing import IO
 
 import click
 
-from ._templates import artifact_builder, replication_listener
 from ._build_zip import build_and_write_workers
+from ._templates import artifact_builder, replication_listener, source_region_core
 
 __version__ = "0.0.1b0"
-_TEMPLATES = {"builder": artifact_builder, "listener": replication_listener}
+_TEMPLATES = {"builder": artifact_builder, "listener": replication_listener, "core-source": source_region_core}
 
 
 @click.group()

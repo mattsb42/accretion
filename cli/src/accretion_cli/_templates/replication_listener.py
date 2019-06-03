@@ -3,7 +3,7 @@ import itertools
 from functools import partial
 from typing import Callable
 
-from accretion_common.constants import ARTIFACTS_PREFIX, LAYER_MANIFESTS_PREFIX
+from accretion_common.constants import ARTIFACT_MANIFESTS_PREFIX, ARTIFACTS_PREFIX, LAYER_MANIFESTS_PREFIX
 from awacs import s3 as S3
 from troposphere import (
     AWS_PARTITION,
@@ -79,7 +79,9 @@ def _add_cloudtrail_listener(
                     cloudtrail.DataResource(
                         Type="AWS::S3::Object",
                         Values=[
-                            Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{replication_bucket.title}}}/{ARTIFACTS_PREFIX}")
+                            Sub(
+                                f"arn:${{{AWS_PARTITION}}}:s3:::${{{replication_bucket.title}}}/{ARTIFACT_MANIFESTS_PREFIX}"
+                            )
                         ],
                     )
                 ],
