@@ -7,10 +7,9 @@ import sys
 from typing import Dict, Iterable
 
 import boto3
-
+from accretion_common.constants import ARTIFACT_MANIFESTS_PREFIX
 from accretion_common.venv_magic.builder import build_requirements
 from accretion_common.venv_magic.uploader import artifact_exists, efficient_build_and_upload_zip
-from accretion_common.constants import ARTIFACT_MANIFESTS_PREFIX
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -127,11 +126,7 @@ def lambda_handler(event, context):
             _setup()
 
         _clean_env()
-        installed = build_requirements(
-            build_dir=BUILD_DIR,
-            venv_dir=VENV_DIR,
-            requirements=event["Requirements"]
-        )
+        installed = build_requirements(build_dir=BUILD_DIR, venv_dir=VENV_DIR, requirements=event["Requirements"])
         artifact_key, manifest_key = _upload_artifacts(event["Name"], event["Requirements"], installed)
         return {
             "Installed": installed,

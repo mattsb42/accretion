@@ -41,10 +41,7 @@ def _validate_languge(language: str) -> str:
 
 
 def _normalize_requirements(requirements_type: str, requirements: Union[str, Iterator[str]]) -> Iterator[str]:
-    requirements_parsers = {
-        "ready": lambda x: x,
-        "requirements.txt": _requirements_txt_to_ready
-    }
+    requirements_parsers = {"ready": lambda x: x, "requirements.txt": _requirements_txt_to_ready}
 
     try:
         parser = requirements_parsers[requirements_type]
@@ -107,15 +104,10 @@ def lambda_handler(event, context):
 
         valid_language = _validate_languge(event["Language"])
         valid_requirements = _normalize_requirements(
-            requirements_type=event["Requirements"]["Type"],
-            requirements=event["Requirements"]["Requirements"],
+            requirements_type=event["Requirements"]["Type"], requirements=event["Requirements"]["Requirements"]
         )
 
-        return {
-            "Name": event["Name"],
-            "Language": valid_language,
-            "Requirements": valid_requirements,
-        }
+        return {"Name": event["Name"], "Language": valid_language, "Requirements": valid_requirements}
     except Exception:
         # TODO: Turn these into known-cause state machine failures.
         raise
