@@ -4,6 +4,7 @@ from typing import IO
 import click
 
 from ._templates import artifact_builder, replication_listener
+from ._build_zip import build_and_write_workers
 
 __version__ = "0.0.1b0"
 _TEMPLATES = {"builder": artifact_builder, "listener": replication_listener}
@@ -28,3 +29,16 @@ def generate(template_type: str, output: IO):
     """
     template = _TEMPLATES[template_type].build()
     output.write(template.to_json(indent=4))
+
+
+@cli.command()
+@click.argument("output", type=click.File(mode="wb"))
+def build_workers(output: IO):
+    """Build the workers zip file.
+
+    OUTPUT : Where to write the template?
+    \f
+
+    :param str output: Where to write the workers zip?
+    """
+    build_and_write_workers(output)
