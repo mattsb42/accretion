@@ -3,7 +3,7 @@ import click
 
 from ._templates import artifact_builder, replication_listener
 
-__version__ = "0.0.1"
+__version__ = "0.0.1b0"
 _TEMPLATES = {
     "builder": artifact_builder,
     "listener": replication_listener,
