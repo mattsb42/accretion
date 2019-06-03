@@ -1,24 +1,16 @@
 """Lambda Layer zip artifact_builder for Python dependencies."""
-import hashlib
-import io
 import json
 import logging
 import os
 import shutil
-import subprocess
 import sys
-import venv
-from zipfile import ZipFile
 from typing import Dict, Iterable
 
 import boto3
-from botocore.exceptions import ClientError
 
-try:
-    from accretion_workers._util import ARTIFACTS_PREFIX, ARTIFACT_MANIFESTS_PREFIX
-except ImportError:
-    ARTIFACTS_PREFIX = "accretion/artifacts/"
-    ARTIFACT_MANIFESTS_PREFIX = "accretion/manifests/"
+from accretion_common.venv_magic.builder import build_requirements
+from accretion_common.venv_magic.uploader import artifact_exists, efficient_build_and_upload_zip
+from accretion_common.constants import ARTIFACT_MANIFESTS_PREFIX
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -34,14 +26,6 @@ _RUNTIME_NAMES = {3: {6: "python3.6", 7: "python3.7"}}
 _is_setup = False
 
 
-class ZipBuilderError(Exception):
-    """Raised when any known error happens."""
-
-
-class ExecutionError(Exception):
-    """Raised when a command fails to execute."""
-
-
 def _setup():
     global _bucket_name
     _bucket_name = os.environ[S3_BUCKET]
@@ -53,141 +37,8 @@ def _setup():
     _is_setup = True
 
 
-class PackageVersion:
-    def __init__(self, name: str, version: str):
-        self.name = name
-        self.version = version
-
-    @classmethod
-    def from_pip_log(cls, log_value: str) -> "PackageVersion":
-        name, version = log_value.rsplit("-", 1)
-        return PackageVersion(name, version)
-
-    def to_dict(self) -> Dict[str, str]:
-        return dict(Name=self.name, Version=self.version)
-
-
-def _execute_command(command: str) -> (str, str):
-    logger.debug(f"Executing command: {command}")
-    proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8", shell=True)
-    logger.debug("============STDOUT============")
-    logger.debug(proc.stdout)
-    logger.debug("============STDERR============")
-    logger.debug(proc.stderr)
-    if proc.stderr:
-        raise ExecutionError("Failed to execute command")
-    return proc.stdout, proc.stderr
-
-
-def _execute_in_venv(command: str) -> (str, str):
-    return _execute_command(f"source {VENV_DIR}/bin/activate; {command}; deactivate")
-
-
 def _clean_env():
     shutil.rmtree(WORKING_DIR, ignore_errors=True)
-
-
-def _build_venv():
-    _clean_env()
-    venv.create(VENV_DIR, clear=True, with_pip=True)
-    _execute_in_venv("pip install --no-cache-dir --upgrade pip")
-
-
-def _install_requirements_to_build() -> (str, str):
-    return _execute_in_venv(
-        "pip install --no-cache-dir --upgrade --ignore-installed --no-compile "
-        f"--log {BUILD_LOG} "
-        f"-r {BUILD_REQUIREMENTS} --target {BUILD_DIR}"
-    )
-
-
-def _build_requirements(*libraries: str):
-    with open(BUILD_REQUIREMENTS, "w") as f:
-        for library in libraries:
-            f.write(f"{library}\n")
-
-
-def _parse_install_log() -> Iterable[Dict[str, str]]:
-    trigger = "Successfully installed"
-    installed = []
-    with open(BUILD_LOG, "r") as f:
-        for line in f:
-            line = line.split(" ", 1)[-1].strip()
-            if line.startswith(trigger):
-                line = line[len(trigger) :].strip()
-                installed = line.split()
-                break
-    logger.debug(f"Installed to layer artifact: {installed}")
-    return [PackageVersion.from_pip_log(log_entry).to_dict() for log_entry in installed]
-
-
-def _file_filter(filename: str) -> bool:
-    """Determine whether this file should be included in the zip file.
-
-    :param str filename: Filename
-    :rtype: bool
-    """
-    # For now, leave everything in.
-    return True
-
-    if filename.endswith(".pyc"):
-        return False
-
-    if f"{os.path.sep}__pycache__{os.path.sep}" in filename:
-        return False
-
-    return True
-
-
-def _build_zip() -> io.BytesIO:
-    buffer = io.BytesIO()
-    with ZipFile(buffer, mode="w") as zipper:
-        for root, dirs, files in os.walk(BUILD_DIR):
-            for filename in files:
-                if not _file_filter(filename):
-                    continue
-
-                filepath = os.path.join(root, filename)
-                zipper.write(filename=filepath, arcname=f"python/{filepath[len(BUILD_DIR) + 1:]}")
-
-    logger.debug(f"Zip file size: {buffer.tell()} bytes")
-    buffer.seek(0)
-    return buffer
-
-
-def _key_hash(installed: Iterable[Dict[str, str]]) -> str:
-    hasher = hashlib.sha256()
-
-    hasher.update(b"===INSTALLED===")
-    for statement in sorted([package["Name"] + "-" + package["Version"] for package in installed]):
-        hasher.update(statement.encode("utf-8"))
-
-    hasher.update(b"===RUNTIMES===")
-    hasher.update(_runtime_name().encode("utf-8"))
-
-    return hasher.hexdigest()
-
-
-def _artifact_exists(artifact_key: str) -> bool:
-    try:
-        _s3.head_object(Bucket=_bucket_name, Key=artifact_key)
-    except ClientError:
-        return False
-    else:
-        return True
-
-
-def _build_and_upload_zip(project_name: str, installed: Iterable[Dict[str, str]]) -> str:
-    artifact_id = _key_hash(installed)
-    key = f"{ARTIFACTS_PREFIX}{project_name}/{artifact_id}.zip"
-
-    if _artifact_exists(key):
-        return key
-
-    zip_buffer = _build_zip()
-
-    _s3.put_object(Bucket=_bucket_name, Key=key, Body=zip_buffer)
-    return key
 
 
 def _write_manifest(
@@ -196,7 +47,7 @@ def _write_manifest(
     artifact_id = artifact_key[artifact_key.rindex("/") + 1 : artifact_key.rindex(".")]
     key = f"{ARTIFACT_MANIFESTS_PREFIX}{project_name}/{artifact_id}.manifest"
 
-    if _artifact_exists(key):
+    if artifact_exists(_s3, _bucket_name, key):
         return key
 
     body = json.dumps(
@@ -221,15 +72,15 @@ def _runtime_name():
         raise Exception(f"Unexpected runtime: {sys.version_info}")
 
 
-def build_artifact(requirements: Iterable[str]) -> Iterable[Dict[str, str]]:
-    _build_venv()
-    _build_requirements(*requirements)
-    _install_requirements_to_build()
-    return _parse_install_log()
-
-
 def _upload_artifacts(name: str, requirements: Iterable[str], installed: Iterable[Dict[str, str]]):
-    artifact_key = _build_and_upload_zip(name, installed)
+    artifact_key = efficient_build_and_upload_zip(
+        s3=_s3,
+        project_name=name,
+        installed=installed,
+        bucket_name=_bucket_name,
+        build_dir=BUILD_DIR,
+        runtime_name=_runtime_name(),
+    )
     manifest_key = _write_manifest(
         project_name=name,
         artifact_key=artifact_key,
@@ -275,7 +126,12 @@ def lambda_handler(event, context):
         if not _is_setup:
             _setup()
 
-        installed = build_artifact(event["Requirements"])
+        _clean_env()
+        installed = build_requirements(
+            build_dir=BUILD_DIR,
+            venv_dir=VENV_DIR,
+            requirements=event["Requirements"]
+        )
         artifact_key, manifest_key = _upload_artifacts(event["Name"], event["Requirements"], installed)
         return {
             "Installed": installed,

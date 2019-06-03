@@ -40,7 +40,7 @@ def get_requireemnts():
     return requirements, dependencies
 
 
-install_requires, dependency_links = get_requireemnts()
+INSTALL_REQUIRES, DEPENDENCY_LINKS = get_requireemnts()
 
 setup(
     name="accretion_common",
@@ -56,8 +56,8 @@ setup(
     keywords="accretion_common accretion_common",
     data_files=["README.rst", "CHANGELOG.rst", "LICENSE", "requirements.txt"],
     license="Apache 2.0",
-    install_requires=install_requires,
-    dependency_links=dependency_links,
+    install_requires=INSTALL_REQUIRES,
+    dependency_links=DEPENDENCY_LINKS,
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",
@@ -67,6 +67,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: Implementation :: CPython"
-    ]
+        "Programming Language :: Python :: Implementation :: CPython",
+    ],
 )
