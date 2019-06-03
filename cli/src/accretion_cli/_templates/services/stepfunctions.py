@@ -1,6 +1,6 @@
 """AWS Step Functions state machines."""
 import json
-from typing import Dict, Iterable
+from typing import Dict
 
 from troposphere import AWSObject, Sub, Tags, Template, awslambda, sns, stepfunctions
 

@@ -1,13 +1,12 @@
 """Accretion CloudFormation template artifact_builder."""
+from typing import IO
+
 import click
 
 from ._templates import artifact_builder, replication_listener
 
 __version__ = "0.0.1b0"
-_TEMPLATES = {
-    "builder": artifact_builder,
-    "listener": replication_listener,
-}
+_TEMPLATES = {"builder": artifact_builder, "listener": replication_listener}
 
 
 @click.group()
@@ -18,7 +17,7 @@ def cli():
 @cli.command()
 @click.argument("template_type", type=click.Choice(_TEMPLATES.keys()))
 @click.argument("output", type=click.File(mode="w", encoding="utf-8"))
-def generate(template_type, output):
+def generate(template_type: str, output: IO):
     """Generate a template.
 
     OUTPUT : Where to write the template?

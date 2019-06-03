@@ -3,6 +3,7 @@ import itertools
 from functools import partial
 from typing import Callable
 
+from accretion_common.constants import ARTIFACTS_PREFIX, LAYER_MANIFESTS_PREFIX
 from awacs import s3 as S3
 from troposphere import (
     AWS_PARTITION,
@@ -78,7 +79,7 @@ def _add_cloudtrail_listener(
                     cloudtrail.DataResource(
                         Type="AWS::S3::Object",
                         Values=[
-                            Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{replication_bucket.title}}}/accretion/manifests/")
+                            Sub(f"arn:${{{AWS_PARTITION}}}:s3:::${{{replication_bucket.title}}}/{ARTIFACTS_PREFIX}")
                         ],
                     )
                 ],
@@ -144,8 +145,8 @@ def _add_layer_version_publisher(
     lambda_adder: Callable, regional_bucket: s3.Bucket, replication_bucket: Parameter
 ) -> awslambda.Function:
     statements = itertools.chain(
-        s3_put_object_statement(f"${{{regional_bucket.title}}}/accretion/layers/"),
-        s3_get_object_statement(f"${{{replication_bucket.title}}}/accretion/artifacts/"),
+        s3_put_object_statement(f"${{{regional_bucket.title}}}/{LAYER_MANIFESTS_PREFIX}"),
+        s3_get_object_statement(f"${{{replication_bucket.title}}}/{ARTIFACTS_PREFIX}"),
         lambda_layer_permissions(),
     )
 

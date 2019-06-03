@@ -50,9 +50,5 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: System :: Archiving :: Packaging",
     ],
-    entry_points=dict(
-        console_scripts=[
-            "accretion=accretion_cli:cli"
-        ]
-    )
+    entry_points=dict(console_scripts=["accretion=accretion_cli:cli"]),
 )
