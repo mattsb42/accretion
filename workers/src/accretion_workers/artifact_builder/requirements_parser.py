@@ -60,14 +60,19 @@ def lambda_handler(event, context):
 
     Event shape:
 
-    ..code:: json
+    .. code:: json
 
         {
             "Name": "layer name",
             "Language": "Language to target",
             "Requirements": {
                 "Type": "ready",
-                "Requirements": ["List of requirements"]
+                "Requirements": [
+                    {
+                        "Name": "Requirement Name",
+                        "Version": "Requirement Version"
+                    }
+                ]
             },
             "Requirements": {
                 "Type": "requirements.txt",
@@ -75,7 +80,7 @@ def lambda_handler(event, context):
             }
         }
 
-    ..note::
+    .. note::
 
         Language must be a valid
         `runtime prefix <https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html>`_
@@ -83,7 +88,7 @@ def lambda_handler(event, context):
 
     Return shape:
 
-    ..code:: json
+    .. code:: json
 
         {
             "Name": "layer name",
