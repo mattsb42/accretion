@@ -117,6 +117,32 @@ Check a :ref:`Request File` for correctness.
 
     accretion check REQUEST_FILE
 
+raw
+---
+
+You shouldn't generally need these commands.
+They expose some of the inner workings of the Accretion CLI
+and are retained primarily for testing purposes.
+They might be removed at a later date.
+
+build-workers
+^^^^^^^^^^^^^
+
+Build the zip file needed for the Accretion workers Lambdas.
+
+.. code:: shell
+
+    accretion raw build-workers OUTPUT_FILE
+
+generate
+^^^^^^^^
+
+Generate the Accretion CloudFormation templates.
+
+.. code:: shell
+
+    accretion raw generate [builder|listener|core-source]
+
 .. _Deployment File:
 
 Deployment File
