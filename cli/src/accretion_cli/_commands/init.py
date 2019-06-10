@@ -1,7 +1,7 @@
 """Commands for ``accretion init``."""
-from time import sleep
 import json
 import threading
+from time import sleep
 from typing import IO, Iterable, List
 
 import attr
@@ -27,7 +27,9 @@ def _init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
     """"""
     calls = []
     for region in regions:
-        call = threading.Thread(target=_init_in_region, kwargs=dict(region=region, deployment=record.Deployments[region]))
+        call = threading.Thread(
+            target=_init_in_region, kwargs=dict(region=region, deployment=record.Deployments[region])
+        )
         calls.append(call)
         call.start()
 
@@ -49,7 +51,10 @@ def _destroy_in_region(*, region: str, dep: Deployment, calls: List[threading.Th
         stack_name = getattr(dep, logical_name)
 
         if stack_name is not None:
-            call = threading.Thread(target=_destroy_stack_in_region, kwargs=dict(region=region, logical_name=logical_name, stack_name=stack_name))
+            call = threading.Thread(
+                target=_destroy_stack_in_region,
+                kwargs=dict(region=region, logical_name=logical_name, stack_name=stack_name),
+            )
             calls.append(call)
             call.start()
 

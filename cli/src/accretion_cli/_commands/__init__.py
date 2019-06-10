@@ -2,7 +2,7 @@
 
 import click
 
-from .init import init_project, destroy_project
+from .init import destroy_project, init_project
 from .raw import raw_cli
 
 

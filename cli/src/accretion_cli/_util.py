@@ -25,10 +25,9 @@ class DeploymentFile:
 
     @classmethod
     def from_dict(cls, kwargs):
-        return cls(Deployments={
-            region: Deployment(**sub_args)
-            for region, sub_args in kwargs.get("Deployments", {}).items()
-        })
+        return cls(
+            Deployments={region: Deployment(**sub_args) for region, sub_args in kwargs.get("Deployments", {}).items()}
+        )
 
 
 def _boto3_session(*, region: str) -> boto3.session.Session:
@@ -57,12 +56,7 @@ def deploy_stack(*, region: str, template: str, **parameters) -> str:
     cfn_client.create_stack(**kwargs)
 
     created_waiter = cfn_client.get_waiter("stack_create_complete")
-    created_waiter.wait(
-        StackName=stack_name,
-        WaiterConfig=dict(
-            MaxAttempts=50
-        )
-    )
+    created_waiter.wait(StackName=stack_name, WaiterConfig=dict(MaxAttempts=50))
 
     return stack_name
 
@@ -77,14 +71,7 @@ def destroy_stack(*, region: str, stack_name: str):
     boto3_session = _boto3_session(region=region)
     cfn_client = boto3_session.client("cloudformation")
 
-    cfn_client.delete_stack(
-        StackName=stack_name
-    )
+    cfn_client.delete_stack(StackName=stack_name)
 
     stack_destroyed = cfn_client.get_waiter("stack_delete_complete")
-    stack_destroyed.wait(
-        StackName=stack_name,
-        WaiterConfig=dict(
-            MaxAttempts=50
-        )
-    )
+    stack_destroyed.wait(StackName=stack_name, WaiterConfig=dict(MaxAttempts=50))
