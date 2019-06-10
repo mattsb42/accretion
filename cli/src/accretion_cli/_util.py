@@ -31,6 +31,12 @@ class DeploymentFile:
 
 
 def _boto3_session(*, region: str) -> boto3.session.Session:
+    """Generate a threading-friendly boto3 session for ``region``.
+
+    :param str region: Region to target
+    :return: independent boto3 session for ``region``
+    :rtype: boto3.session.Session
+    """
     botocore_session = botocore.session.Session()
     return boto3.session.Session(botocore_session=botocore_session, region_name=region)
 
