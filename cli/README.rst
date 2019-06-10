@@ -18,15 +18,28 @@ Usage
 init
 ----
 
-Create base resources for an Accretion deployment.
-
-.. important::
-
-    If DEPLOYMENT_FILE is provided, it MUST contain ONLY a "Regions" list.
+Create base resources for an Accretion deployment in all specified regions.
+The results are stored in ``DEPLOYMENT_FILE``.
 
 .. code:: shell
 
-    accretion init [DEPLOYMENT_FILE]
+    accretion init DEPLOYMENT_FILE REGIONS...
+
+
+destroy
+-------
+
+Destroy all resources for an Accretion deployment described in ``DEPLOYMENT_FILE``.
+
+.. important::
+
+    This will destroy ALL resources.
+    Be sure that is what you want to do before running this.
+
+
+.. code:: shell
+
+    accretion destroy DEPLOYMENT_FILE
 
 
 add
@@ -120,20 +133,13 @@ It is a JSON file with the following structure:
 .. code:: json
 
     {
-        "Regions": [
-            "AWS_REGION",
-            "AWS_REGION"
-        ],
-        "Deployments": [
-            {
-                "Region": "AWS_REGION",
-                "Stacks": {
-                    "Core": "STACK_NAME",
-                    "ArtifactBuilder": "STACK_NAME",
-                    "LayerBuilder": "STACK_NAME"
-                }
+        "Deployments": {
+            "AWS_REGION": {
+                "Core": "STACK_NAME",
+                "ArtifactBuilder": "STACK_NAME",
+                "LayerBuilder": "STACK_NAME"
             }
-        ]
+        }
     }
 
 

@@ -1,21 +1,20 @@
-"""Commands for ``accretion raw``."""
+"""Raw CLI commands."""
 from typing import IO
 
 import click
 
-from ._build_zip import build_and_write_workers
-from ._templates import artifact_builder, replication_listener, source_region_core
+from .._build_zip import build_and_write_workers
+from .._templates import artifact_builder, replication_listener, source_region_core
 
-__version__ = "0.0.1b0"
 _TEMPLATES = {"builder": artifact_builder, "listener": replication_listener, "core-source": source_region_core}
 
 
-@click.group()
-def cli():
-    """Main entry point."""
+@click.group("raw")
+def raw_cli():
+    """Raw Accretion commands. Not recommended for direct use."""
 
 
-@cli.command()
+@raw_cli.command()
 @click.argument("template_type", type=click.Choice(_TEMPLATES.keys()))
 @click.argument("output", type=click.File(mode="w", encoding="utf-8"))
 def generate(template_type: str, output: IO):
@@ -31,7 +30,7 @@ def generate(template_type: str, output: IO):
     output.write(template.to_json(indent=4))
 
 
-@cli.command()
+@raw_cli.command()
 @click.argument("output", type=click.File(mode="wb"))
 def build_workers(output: IO):
     """Build the workers zip file.
