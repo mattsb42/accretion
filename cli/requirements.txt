@@ -3,3 +3,5 @@ troposphere[policy]
 awacs >= 0.9.0
 Click >= 7.0
 accretion_common
+boto3
+botocore

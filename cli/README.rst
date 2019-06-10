@@ -18,15 +18,28 @@ Usage
 init
 ----
 
-Create base resources for an Accretion deployment.
-
-.. important::
-
-    If DEPLOYMENT_FILE is provided, it MUST contain ONLY a "Regions" list.
+Create base resources for an Accretion deployment in all specified regions.
+The results are stored in ``DEPLOYMENT_FILE``.
 
 .. code:: shell
 
-    accretion init [DEPLOYMENT_FILE]
+    accretion init DEPLOYMENT_FILE REGIONS...
+
+
+destroy
+-------
+
+Destroy all resources for an Accretion deployment described in ``DEPLOYMENT_FILE``.
+
+.. important::
+
+    This will destroy ALL resources.
+    Be sure that is what you want to do before running this.
+
+
+.. code:: shell
+
+    accretion destroy DEPLOYMENT_FILE
 
 
 add
@@ -104,6 +117,32 @@ Check a :ref:`Request File` for correctness.
 
     accretion check REQUEST_FILE
 
+raw
+---
+
+You shouldn't generally need these commands.
+They expose some of the inner workings of the Accretion CLI
+and are retained primarily for testing purposes.
+They might be removed at a later date.
+
+build-workers
+^^^^^^^^^^^^^
+
+Build the zip file needed for the Accretion workers Lambdas.
+
+.. code:: shell
+
+    accretion raw build-workers OUTPUT_FILE
+
+generate
+^^^^^^^^
+
+Generate the Accretion CloudFormation templates.
+
+.. code:: shell
+
+    accretion raw generate [builder|listener|core-source]
+
 .. _Deployment File:
 
 Deployment File
@@ -120,20 +159,13 @@ It is a JSON file with the following structure:
 .. code:: json
 
     {
-        "Regions": [
-            "AWS_REGION",
-            "AWS_REGION"
-        ],
-        "Deployments": [
-            {
-                "Region": "AWS_REGION",
-                "Stacks": {
-                    "Core": "STACK_NAME",
-                    "ArtifactBuilder": "STACK_NAME",
-                    "LayerBuilder": "STACK_NAME"
-                }
+        "Deployments": {
+            "AWS_REGION": {
+                "Core": "STACK_NAME",
+                "ArtifactBuilder": "STACK_NAME",
+                "LayerBuilder": "STACK_NAME"
             }
-        ]
+        }
     }
 
 
