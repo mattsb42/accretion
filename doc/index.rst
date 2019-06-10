@@ -2,6 +2,10 @@
 Accretion
 #########
 
+.. important::
+
+    Accretion is not yet stable. Use with care.
+
 Tooling for building AWS Lambda Layers containing desired dependencies.
 
 Find `our source code on GitHub`_.
