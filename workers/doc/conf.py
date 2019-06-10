@@ -5,7 +5,7 @@ import os
 import re
 from datetime import datetime
 
-VERSION_RE = re.compile(r"""__version__ = ['"]([0-9.]+)['"]""")
+VERSION_RE = re.compile(r"""__version__ = ['"]([0-9b.]+)['"]""")
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 
