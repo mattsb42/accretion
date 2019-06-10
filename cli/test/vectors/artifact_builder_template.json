@@ -1,0 +1,363 @@
+{
+    "Description": "Accretion artifact builder resources",
+    "Parameters": {
+        "ArtifactBucketName": {
+            "Type": "String",
+            "Description": "Name of artifacts bucket"
+        },
+        "WorkersS3Key": {
+            "Type": "String",
+            "Description": "S3 key in artifacts bucket containing workers zip"
+        },
+        "Boto3LambdaLayer": {
+            "Type": "String",
+            "Description": "Lambda Layer Version Arn containing recent boto3 build"
+        }
+    },
+    "Resources": {
+        "ParseRequirementsRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ParseRequirementsRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ParseRequirementsFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "ParseRequirementsRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "ArtifactBucketName"
+                    },
+                    "S3Key": {
+                        "Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.artifact_builder.requirements_parser.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Ref": "ArtifactBucketName"
+                        }
+                    }
+                },
+                "Runtime": "python3.7",
+                "Layers": [
+                    {
+                        "Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 128,
+                "Timeout": 15,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "PythonBuilder36Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "PythonBuilder36RolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucketName}/accretion/artifacts/*"
+                                        },
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucketName}/accretion/manifests/*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "PythonBuilder36Function": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "PythonBuilder36Role",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "ArtifactBucketName"
+                    },
+                    "S3Key": {
+                        "Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.artifact_builder.zip_builder.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Ref": "ArtifactBucketName"
+                        }
+                    }
+                },
+                "Runtime": "python3.6",
+                "Layers": [
+                    {
+                        "Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 2048,
+                "Timeout": 900,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "PythonBuilder37Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "PythonBuilder37RolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucketName}/accretion/artifacts/*"
+                                        },
+                                        {
+                                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucketName}/accretion/manifests/*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "PythonBuilder37Function": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "PythonBuilder37Role",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "ArtifactBucketName"
+                    },
+                    "S3Key": {
+                        "Ref": "WorkersS3Key"
+                    }
+                },
+                "Handler": "accretion_workers.artifact_builder.zip_builder.lambda_handler",
+                "Environment": {
+                    "Variables": {
+                        "S3_BUCKET": {
+                            "Ref": "ArtifactBucketName"
+                        }
+                    }
+                },
+                "Runtime": "python3.7",
+                "Layers": [
+                    {
+                        "Ref": "Boto3LambdaLayer"
+                    }
+                ],
+                "MemorySize": 2048,
+                "Timeout": 900,
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        },
+        "ArtifactBuilderStateMachineRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement" : [
+                        {
+                            "Principal": {
+                                "Service": "states.amazonaws.com"
+                            },
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ArtifactBuilderStateMachineRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:InvokeFunction"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::GetAtt": [
+                                                "ParseRequirementsFunction",
+                                                "Arn"
+                                            ]
+                                        },
+                                        {
+                                            "Fn::GetAtt": [
+                                                "PythonBuilder36Function",
+                                                "Arn"
+                                            ]
+                                        },
+                                        {
+                                            "Fn::GetAtt": [
+                                                "PythonBuilder37Function",
+                                                "Arn"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ArtifactBuilderStateMachine": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Properties": {
+                "DefinitionString": {
+                    "Fn::Sub": "{\"Comment\": \"Artifact Builder\", \"StartAt\": \"ParseRequirements\", \"States\": {\"ParseRequirements\": {\"Type\": \"Task\", \"Resource\": \"${ParseRequirementsFunction.Arn}\", \"Next\": \"SelectLanguage\"}, \"SelectLanguage\": {\"Type\": \"Choice\", \"Choices\": [{\"Variable\": \"$.Language\", \"StringEquals\": \"python\", \"Next\": \"BuildPython\"}], \"Default\": \"UnknownLanguage\"}, \"UnknownLanguage\": {\"Type\": \"Fail\", \"Cause\": \"Invalid language\"}, \"BuildPython\": {\"Type\": \"Parallel\", \"Branches\": [{\"StartAt\": \"BuildPython36\", \"States\": {\"BuildPython36\": {\"Type\": \"Task\", \"Resource\": \"${PythonBuilder36Function.Arn}\", \"End\": true}}}, {\"StartAt\": \"BuildPython37\", \"States\": {\"BuildPython37\": {\"Type\": \"Task\", \"Resource\": \"${PythonBuilder37Function.Arn}\", \"End\": true}}}], \"ResultPath\": \"$.BuildResults\", \"End\": true}}}"
+                },
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "ArtifactBuilderStateMachineRole",
+                        "Arn"
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Accretion",
+                        "Value": "ArtifactBuilder"
+                    }
+                ]
+            }
+        }
+    }
+}

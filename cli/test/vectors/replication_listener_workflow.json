@@ -1,0 +1,81 @@
+{
+    "Comment": "Replication Listener",
+    "StartAt": "Filter",
+    "States": {
+        "Filter": {
+            "Type": "Task",
+            "Resource": "${EventFilterFunction.Arn}",
+            "ResultPath": "$",
+            "Next": "ShouldProcess"
+        },
+        "ShouldProcess": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.ProcessEvent",
+                    "BooleanEquals": true,
+                    "Next": "LocateArtifact"
+                }
+            ],
+            "Default": "IgnoreEvent"
+        },
+        "IgnoreEvent": {
+            "Type": "Succeed",
+            "Comment": "Ignore this event"
+        },
+        "LocateArtifact": {
+            "Type": "Task",
+            "Resource": "${ArtifactLocatorFunction.Arn}",
+            "ResultPath": "$.Artifact",
+            "Next": "ArtifactCheck"
+        },
+        "ArtifactCheck": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.Artifact.Found",
+                    "BooleanEquals": true,
+                    "Next": "PublishNewVersion"
+                },
+                {
+                    "And": [
+                        {
+                            "Variable": "$.Artifact.Found",
+                            "BooleanEquals": false
+                        },
+                        {
+                            "Variable": "$.Artifact.ReadAttempts",
+                            "NumericGreaterThan": 15
+                        }
+                    ],
+                    "Next": "ReplicationTimeout"
+                }
+            ],
+            "Default": "WaitForReplication"
+        },
+        "ReplicationTimeout": {
+            "Type": "Fail",
+            "Error": "Timed out waiting for artifact to replicate"
+        },
+        "WaitForReplication": {
+            "Type": "Wait",
+            "Seconds": 60,
+            "Next": "LocateArtifact"
+        },
+        "PublishNewVersion": {
+            "Type": "Task",
+            "Resource": "${LayerVersionPublisherFunction.Arn}",
+            "ResultPath": "$.Layer",
+            "Next": "Notify"
+        },
+        "Notify": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "TopicArn": "${NotifyTopic}",
+                "Message.$": "$.Layer"
+            },
+            "End": true
+        }
+    }
+}

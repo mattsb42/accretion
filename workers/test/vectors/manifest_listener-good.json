@@ -1,0 +1,71 @@
+{
+  "version": "0",
+  "id": "18d44bfb-0c5f-2710-5703-b9b453338c54",
+  "detail-type": "AWS API Call via CloudTrail",
+  "source": "aws.s3",
+  "account": "708084320129",
+  "time": "2019-04-21T02:47:23Z",
+  "region": "us-west-2",
+  "resources": [],
+  "detail": {
+    "eventVersion": "1.05",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "principalId": "AROA2JXI5I6A6QVWE2UFV:build-test",
+      "arn": "arn:aws:sts::708084320129:assumed-role/lambda-basic-execution-with-s3-rw/build-test",
+      "accountId": "708084320129",
+      "accessKeyId": "ASIA2JXI5I6AVVXMA576",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "principalId": "AROA2JXI5I6A6QVWE2UFV",
+          "arn": "arn:aws:iam::708084320129:role/lambda-basic-execution-with-s3-rw",
+          "accountId": "708084320129",
+          "userName": "lambda-basic-execution-with-s3-rw"
+        },
+        "attributes": {
+          "creationDate": "2019-04-21T02:47:16Z",
+          "mfaAuthenticated": "false"
+        }
+      }
+    },
+    "eventTime": "2019-04-21T02:47:23Z",
+    "eventSource": "s3.amazonaws.com",
+    "eventName": "PutObject",
+    "awsRegion": "us-west-2",
+    "sourceIPAddress": "34.216.194.46",
+    "userAgent": "[Boto3/1.9.42 Python/3.7.2 Linux/4.14.88-90.76.amzn2.x86_64 exec-env/AWS_Lambda_python3.7 Botocore/1.12.42]",
+    "requestParameters": {
+      "bucketName": "testsrc",
+      "Host": "testsrc.s3.us-west-2.amazonaws.com",
+      "key": "accretion/manifests/exampleLayer/ff9fc259-184f-4751-8022-8c697a301c7f.manifest"
+    },
+    "responseElements": {
+      "x-amz-version-id": "y9051s4WPcE8_JmjExOgSLRzHs9QUmog"
+    },
+    "additionalEventData": {
+      "SignatureVersion": "SigV4",
+      "CipherSuite": "ECDHE-RSA-AES128-GCM-SHA256",
+      "bytesTransferredIn": 1113,
+      "AuthenticationMethod": "AuthHeader",
+      "x-amz-id-2": "9Sh6PIi3UDH897KHz1z0SMbe8kLaV1TWG66AXn4WUlyWt/B4Xj5Fim0IkAUlTaCObOiR2PLeFc8=",
+      "bytesTransferredOut": 0
+    },
+    "requestID": "F92B236BD8B127EF",
+    "eventID": "bc251f9e-5e98-4e6e-a069-65fbdf715c75",
+    "readOnly": false,
+    "resources": [
+      {
+        "type": "AWS::S3::Object",
+        "ARN": "arn:aws:s3:::testsrc/accretion/manifests/exampleLayer/ff9fc259-184f-4751-8022-8c697a301c7f.manifest"
+      },
+      {
+        "accountId": "708084320129",
+        "type": "AWS::S3::Bucket",
+        "ARN": "arn:aws:s3:::testsrc"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "708084320129"
+  }
+}

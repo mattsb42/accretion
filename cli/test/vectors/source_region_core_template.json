@@ -1,0 +1,19 @@
+{
+    "Description": "Core Accretion resources for source region",
+    "Resources": {
+        "SourceBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
