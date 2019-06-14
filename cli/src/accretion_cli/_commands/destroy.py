@@ -6,7 +6,8 @@ from typing import IO, List
 import attr
 import click
 
-from .._util import DeploymentFile, Deployment, destroy_stack
+from .._util import DeploymentFile, Deployment
+from .._util.cloudformation import destroy_stack
 
 __all__ = ("destroy_project",)
 

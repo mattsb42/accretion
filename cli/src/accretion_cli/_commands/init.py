@@ -7,7 +7,8 @@ import attr
 import click
 
 from .._templates import source_region_core
-from .._util import Deployment, DeploymentFile, deploy_stack
+from .._util import Deployment, DeploymentFile
+from .._util.cloudformation import deploy_stack
 
 __all__ = ("init_project",)
 
