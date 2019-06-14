@@ -1,4 +1,4 @@
-"""Commands for ``accretion destroy``."""
+"""Command for ``accretion destroy``."""
 import json
 import threading
 from typing import IO, List

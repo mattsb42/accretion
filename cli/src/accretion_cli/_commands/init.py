@@ -1,4 +1,4 @@
-"""Commands for ``accretion init``."""
+"""Command for ``accretion init``."""
 import json
 import threading
 from typing import IO, Iterable
