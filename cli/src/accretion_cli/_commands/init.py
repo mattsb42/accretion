@@ -43,8 +43,8 @@ def _init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
 
 
 @click.command("init")
-@click.argument("deployment_file", type=click.File("w", encoding="utf-8"))
-@click.argument("regions", type=click.STRING, nargs=-1)
+@click.argument("deployment_file", required=True, type=click.File("w", encoding="utf-8"))
+@click.argument("regions", required=True, type=click.STRING, nargs=-1)
 def init_project(deployment_file: IO, regions: Iterable[str]):
     """Deploy an initial Accretion project.
     Accretion is initialized in REGIONS regions.

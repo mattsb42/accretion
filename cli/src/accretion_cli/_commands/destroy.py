@@ -58,7 +58,7 @@ def _destroy_all_regions(*, record: DeploymentFile):
 
 
 @click.command("destroy")
-@click.argument("deployment_file", type=click.File("r", encoding="utf-8"))
+@click.argument("deployment_file", required=True, type=click.File("r", encoding="utf-8"))
 def destroy_project(deployment_file: IO):
     """Destroy an Accretion deployment described in DEPLOYMENT_FILE.
     \f
