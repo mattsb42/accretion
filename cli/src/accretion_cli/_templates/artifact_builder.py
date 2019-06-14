@@ -41,17 +41,11 @@ def build() -> Template:
     workers_key = builder.add_parameter(
         Parameter("WorkersS3Key", Type="String", Description="S3 key in artifacts bucket containing workers zip")
     )
-    boto3_layer = builder.add_parameter(
-        Parameter(
-            "Boto3LambdaLayer", Type="String", Description="Lambda Layer Version Arn containing recent boto3 build"
-        )
-    )
 
     _lambda_builder = partial(
         lambda_function,
         bucket_name=bucket_name,
         workers_key=workers_key,
-        boto3_layer=boto3_layer,
         namespace="artifact_builder",
         tags=DEFAULT_TAGS,
     )
