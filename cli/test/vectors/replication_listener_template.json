@@ -8,10 +8,6 @@
         "WorkersS3Key": {
             "Type": "String",
             "Description": "S3 key in artifacts bucket containing workers zip"
-        },
-        "Boto3LambdaLayer": {
-            "Type": "String",
-            "Description": "Lambda Layer Version Arn containing recent boto3 build"
         }
     },
     "Resources": {
@@ -169,11 +165,6 @@
                     }
                 },
                 "Runtime": "python3.7",
-                "Layers": [
-                    {
-                        "Ref": "Boto3LambdaLayer"
-                    }
-                ],
                 "MemorySize": 128,
                 "Timeout": 5,
                 "Tags": [
@@ -264,11 +255,6 @@
                     }
                 },
                 "Runtime": "python3.7",
-                "Layers": [
-                    {
-                        "Ref": "Boto3LambdaLayer"
-                    }
-                ],
                 "MemorySize": 512,
                 "Timeout": 30,
                 "Tags": [
@@ -379,11 +365,6 @@
                     }
                 },
                 "Runtime": "python3.7",
-                "Layers": [
-                    {
-                        "Ref": "Boto3LambdaLayer"
-                    }
-                ],
                 "MemorySize": 1024,
                 "Timeout": 60,
                 "Tags": [

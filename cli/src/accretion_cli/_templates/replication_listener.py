@@ -176,11 +176,6 @@ def build() -> Template:
     workers_key = builder.add_parameter(
         Parameter("WorkersS3Key", Type="String", Description="S3 key in artifacts bucket containing workers zip")
     )
-    boto3_layer = builder.add_parameter(
-        Parameter(
-            "Boto3LambdaLayer", Type="String", Description="Lambda Layer Version Arn containing recent boto3 build"
-        )
-    )
 
     # regional bucket
     regional_bucket, regional_bucket_policy = _add_regional_bucket(builder)
@@ -196,7 +191,6 @@ def build() -> Template:
     common_lambda_args = dict(
         source_bucket=replication_bucket,
         workers_key=workers_key,
-        boto3_layer=boto3_layer,
         runtime="python3.7",
         namespace="layer_builder",
         tags=DEFAULT_TAGS,

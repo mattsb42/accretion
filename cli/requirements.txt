@@ -2,6 +2,6 @@ attrs
 troposphere[policy]
 awacs >= 0.9.0
 Click >= 7.0
-accretion_common
+accretion_common >= 0.0.1b1
 boto3
 botocore

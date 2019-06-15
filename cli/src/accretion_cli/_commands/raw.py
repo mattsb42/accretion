@@ -3,8 +3,8 @@ from typing import IO
 
 import click
 
-from .._build_zip import build_and_write_workers
 from .._templates import artifact_builder, replication_listener, source_region_core
+from .._util.workers_zip import build_and_write_workers
 
 _TEMPLATES = {"builder": artifact_builder, "listener": replication_listener, "core-source": source_region_core}
 
@@ -40,4 +40,4 @@ def build_workers(output: IO):
 
     :param str output: Where to write the workers zip?
     """
-    build_and_write_workers(output)
+    build_and_write_workers(outfile=output)
