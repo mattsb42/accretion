@@ -1,5 +1,6 @@
 """Command for ``accretion init``."""
 import json
+import sys
 import threading
 from typing import IO, Iterable
 
@@ -10,7 +11,7 @@ from .._templates import source_region_core
 from .._util import Deployment, DeploymentFile
 from .._util.cloudformation import deploy_stack
 
-__all__ = ("init_project",)
+__all__ = ("init_project", "init_all_regions")
 
 
 def _init_in_region(*, region: str, deployment: Deployment):
@@ -25,7 +26,7 @@ def _init_in_region(*, region: str, deployment: Deployment):
     deployment.Core = stack_name
 
 
-def _init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
+def init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
     """Initialize deployment in all target regions.
 
     :param regions: Regions to target
@@ -33,8 +34,13 @@ def _init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
     """
     calls = []
     for region in regions:
+        regional_record = record.Deployments[region]
+        if regional_record.Core is not None:
+            click.echo(f"Region {region} is already initialized. Skipping.", file=sys.stdout)
+            continue
+
         call = threading.Thread(
-            target=_init_in_region, kwargs=dict(region=region, deployment=record.Deployments[region])
+            target=_init_in_region, kwargs=dict(region=region, deployment=regional_record)
         )
         calls.append(call)
         call.start()
@@ -58,6 +64,6 @@ def init_project(deployment_file: IO, regions: Iterable[str]):
 
     record = DeploymentFile()
 
-    _init_all_regions(regions=regions, record=record)
+    init_all_regions(regions=regions, record=record)
 
     json.dump(attr.asdict(record, filter=lambda _attr, value: value is not None), deployment_file, indent=4)

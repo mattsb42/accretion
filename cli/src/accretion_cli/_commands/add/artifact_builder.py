@@ -12,7 +12,7 @@ from ..._util.parameters import try_to_load_deployment_file, try_to_write_deploy
 from ..._util.s3 import upload_artifact
 from ..._util.workers_zip import build_worker_bytes
 
-__all__ = ("add_artifact_builder",)
+__all__ = ("add_artifact_builder", "deploy_all_regions")
 
 
 def _deploy_in_region(*, region: str, deployment: Deployment, workers_zip_data: bytes):
@@ -33,7 +33,7 @@ def _deploy_in_region(*, region: str, deployment: Deployment, workers_zip_data: 
     click.echo(f"Artifact builder stack {stack_name} successfully deployed in {region}")
 
 
-def _deploy_all_regions(*, record: DeploymentFile, workers_zip_data: bytes):
+def deploy_all_regions(*, record: DeploymentFile, workers_zip_data: bytes):
     """Deploy artifact builder in all regions."""
 
     calls = []
@@ -67,6 +67,6 @@ def add_artifact_builder(deployment_file: str):
 
     workers_zip_data = build_worker_bytes()
 
-    _deploy_all_regions(record=record, workers_zip_data=workers_zip_data)
+    deploy_all_regions(record=record, workers_zip_data=workers_zip_data)
 
     try_to_write_deployment_file(deployment_filename=deployment_file, record=record)
