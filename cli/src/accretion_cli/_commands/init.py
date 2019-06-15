@@ -39,9 +39,7 @@ def init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
             click.echo(f"Region {region} is already initialized. Skipping.", file=sys.stdout)
             continue
 
-        call = threading.Thread(
-            target=_init_in_region, kwargs=dict(region=region, deployment=regional_record)
-        )
+        call = threading.Thread(target=_init_in_region, kwargs=dict(region=region, deployment=regional_record))
         calls.append(call)
         call.start()
 

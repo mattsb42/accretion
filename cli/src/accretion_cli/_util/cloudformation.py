@@ -7,7 +7,7 @@ import click
 from . import Deployment, boto3_session
 from .s3 import empty_bucket
 
-__all__ = ("artifacts_bucket", "deploy_stack", "destroy_stack")
+__all__ = ("artifacts_bucket", "artifact_builder_state_machine", "deploy_stack", "destroy_stack")
 
 
 def deploy_stack(*, region: str, template: str, allow_iam: bool = False, **parameters: str) -> str:
@@ -70,7 +70,6 @@ def destroy_stack(*, region: str, stack_name: str):
     :param str region: AWS region containing stack
     :param str stack_name: Stack name
     """
-    # TODO: Empty buckets...
     session = boto3_session(region=region)
     cfn_client = session.client("cloudformation")
 
@@ -83,11 +82,23 @@ def destroy_stack(*, region: str, stack_name: str):
     stack_destroyed.wait(StackName=stack_name, WaiterConfig=dict(MaxAttempts=50))
 
 
-def artifacts_bucket(*, region: str, regional_record: Deployment) -> str:
+def _resource_physical_id(*, region: str, stack_name: str, logical_resource_id: str) -> str:
     """"""
     session = boto3_session(region=region)
     cfn_client = session.client("cloudformation")
 
-    response = cfn_client.describe_stack_resource(StackName=regional_record.Core, LogicalResourceId="SourceBucket")
+    response = cfn_client.describe_stack_resource(StackName=stack_name, LogicalResourceId=logical_resource_id)
 
     return response["StackResourceDetail"]["PhysicalResourceId"]
+
+
+def artifacts_bucket(*, region: str, regional_record: Deployment) -> str:
+    """"""
+    return _resource_physical_id(region=region, stack_name=regional_record.Core, logical_resource_id="SourceBucket")
+
+
+def artifact_builder_state_machine(*, region: str, regional_record: Deployment) -> str:
+    """"""
+    return _resource_physical_id(
+        region=region, stack_name=regional_record.ArtifactBuilder, logical_resource_id="ArtifactBuilderStateMachine"
+    )

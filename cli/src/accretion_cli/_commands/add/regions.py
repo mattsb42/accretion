@@ -6,8 +6,8 @@ import click
 from ..._util import Deployment
 from ..._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
 from ..._util.workers_zip import build_worker_bytes
-from . import artifact_builder, layer_builder
 from .. import init
+from . import artifact_builder, layer_builder
 
 __all__ = ("add_more_regions",)
 

@@ -17,7 +17,7 @@ def build_and_write_workers(*, outfile: IO):
             build_dir=build_dir, venv_dir=venv_dir, requirements=["accretion_workers"]
         )
         click.echo(f"Installed requirements: {installed_requirements}")
-        zip_buffer = build_zip(build_dir=build_dir)
+        zip_buffer = build_zip(build_dir=build_dir, layer=False)
         for line in zip_buffer:
             outfile.write(line)
 
