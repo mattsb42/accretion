@@ -1,11 +1,12 @@
 """Common internal Accretion utilities."""
-from dataclasses import dataclass
 from typing import Dict
+
+import attr
 
 __all__ = ("PackageVersion",)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class PackageVersion:
     """Container for information identifying a package.
 
