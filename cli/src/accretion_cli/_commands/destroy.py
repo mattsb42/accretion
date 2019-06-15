@@ -39,6 +39,7 @@ def _destroy_in_region(*, region: str, dep: Deployment, calls: List[threading.Th
             call = threading.Thread(
                 target=_destroy_stack_in_region,
                 kwargs=dict(region=region, logical_name=logical_name, stack_name=stack_name),
+                name=f"{region}:::{stack_name}",
             )
             calls.append(call)
             call.start()

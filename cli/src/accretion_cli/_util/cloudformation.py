@@ -1,7 +1,11 @@
 """Utilities for working with CloudFormation stacks."""
 import uuid
 
+import botocore.client
+import click
+
 from . import Deployment, boto3_session
+from .s3 import empty_bucket
 
 __all__ = ("artifacts_bucket", "deploy_stack", "destroy_stack")
 
@@ -36,6 +40,30 @@ def deploy_stack(*, region: str, template: str, allow_iam: bool = False, **param
     return stack_name
 
 
+def _all_buckets(*, client: botocore.client.BaseClient, stack: str):
+    """"""
+    complete = False
+    next_token = None
+    click.echo(f"Looking for buckets in stack {stack}")
+    while not complete:
+        kwargs = dict(StackName=stack)
+        if next_token is not None:
+            kwargs["NextToken"] = next_token
+
+        response = client.list_stack_resources(**kwargs)
+
+        try:
+            next_token = response["NextToken"]
+        except KeyError:
+            complete = True
+
+        for resource in response["StackResourceSummaries"]:
+            if resource["ResourceType"] == "AWS::S3::Bucket":
+                bucket = resource["PhysicalResourceId"]
+                click.echo(f"Found bucket {bucket}")
+                yield bucket
+
+
 def destroy_stack(*, region: str, stack_name: str):
     """Destroy the specified stack in the specified region.
 
@@ -45,6 +73,9 @@ def destroy_stack(*, region: str, stack_name: str):
     # TODO: Empty buckets...
     session = boto3_session(region=region)
     cfn_client = session.client("cloudformation")
+
+    for bucket in _all_buckets(client=cfn_client, stack=stack_name):
+        empty_bucket(region=region, bucket=bucket)
 
     cfn_client.delete_stack(StackName=stack_name)
 
