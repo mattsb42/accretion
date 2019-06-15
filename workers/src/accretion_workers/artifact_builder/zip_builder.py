@@ -73,7 +73,7 @@ def _runtime_name():
 
 def _upload_artifacts(name: str, requirements: Iterable[str], installed: Iterable[Dict[str, str]]):
     artifact_key = efficient_build_and_upload_zip(
-        s3=_s3,
+        s3_client=_s3,
         project_name=name,
         installed=installed,
         bucket_name=_bucket_name,
