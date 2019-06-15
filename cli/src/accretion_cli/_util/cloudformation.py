@@ -1,16 +1,17 @@
 """Utilities for working with CloudFormation stacks."""
 import uuid
 
-from . import boto3_session, Deployment
+from . import Deployment, boto3_session
 
 __all__ = ("artifacts_bucket", "deploy_stack", "destroy_stack")
 
 
-def deploy_stack(*, region: str, template: str, **parameters) -> str:
+def deploy_stack(*, region: str, template: str, allow_iam: bool = False, **parameters: str) -> str:
     """Deploy a new CloudFormation stack in a thread-friendly way.
 
     :param str region: AWS region to target
     :param str template: Stack template body
+    :param bool allow_iam: Should this stack be allowed to create IAM resources?
     :param parameters: Stack parameters
     :return: Name of deployed stack
     :rtype: str
@@ -21,8 +22,11 @@ def deploy_stack(*, region: str, template: str, **parameters) -> str:
 
     kwargs = dict(StackName=stack_name, TemplateBody=template)
 
+    if allow_iam:
+        kwargs["Capabilities"] = ["CAPABILITY_IAM"]
+
     if parameters:
-        kwargs["Parameters"] = [dict(ParameterKey=key, ParameterValue=value) for key, value in kwargs.items()]
+        kwargs["Parameters"] = [dict(ParameterKey=key, ParameterValue=value) for key, value in parameters.items()]
 
     cfn_client.create_stack(**kwargs)
 
@@ -53,9 +57,6 @@ def artifacts_bucket(*, region: str, regional_record: Deployment) -> str:
     session = boto3_session(region=region)
     cfn_client = session.client("cloudformation")
 
-    response = cfn_client.describe_stack_resource(
-        StackName=regional_record.Core,
-        LogicalResourceId="SourceBucket"
-    )
+    response = cfn_client.describe_stack_resource(StackName=regional_record.Core, LogicalResourceId="SourceBucket")
 
     return response["StackResourceDetail"]["PhysicalResourceId"]

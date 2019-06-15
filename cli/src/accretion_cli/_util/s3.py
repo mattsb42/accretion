@@ -18,10 +18,6 @@ def upload_artifact(*, region: str, bucket: str, prefix: str, artifact_data: byt
     session = boto3_session(region=region)
     s3_client = session.client("s3")
 
-    s3_client.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=artifact_data
-    )
+    s3_client.put_object(Bucket=bucket, Key=key, Body=artifact_data)
 
     return key

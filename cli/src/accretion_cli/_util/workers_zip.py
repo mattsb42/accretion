@@ -1,4 +1,5 @@
 """"""
+import io
 from tempfile import TemporaryDirectory
 from typing import IO
 
@@ -6,7 +7,7 @@ import click
 from accretion_common.venv_magic.builder import build_requirements
 from accretion_common.venv_magic.zipper import build_zip
 
-__all__ = ("build_and_write_workers",)
+__all__ = ("build_and_write_workers", "build_worker_bytes")
 
 
 def build_and_write_workers(*, outfile: IO):
@@ -19,3 +20,16 @@ def build_and_write_workers(*, outfile: IO):
         zip_buffer = build_zip(build_dir=build_dir)
         for line in zip_buffer:
             outfile.write(line)
+
+
+def build_worker_bytes() -> bytes:
+    """"""
+    # Build workers zip.
+    workers_zip = io.BytesIO()
+    build_and_write_workers(outfile=workers_zip)
+    # Copy into bytes that we can farm out to multiple threads.
+    workers_zip_data = workers_zip.getvalue()
+    # Then discard the original.
+    workers_zip.truncate(0)
+
+    return workers_zip_data
