@@ -9,7 +9,7 @@ from accretion_common.venv_magic.zipper import build_zip
 __all__ = ("build_and_write_workers",)
 
 
-def build_and_write_workers(outfile: IO):
+def build_and_write_workers(*, outfile: IO):
     """"""
     with TemporaryDirectory() as venv_dir, TemporaryDirectory() as build_dir:
         installed_requirements = build_requirements(

@@ -9,10 +9,9 @@ from accretion_cli._util.parameters import try_to_load_deployment_file
 pytestmark = [pytest.mark.local, pytest.mark.functional]
 
 
-@pytest.mark.parametrize("file_contents, error_message", (
-        (None, "Deployment file does not exist!"),
-        ("", "Invalid deployment file!"),
-))
+@pytest.mark.parametrize(
+    "file_contents, error_message", ((None, "Deployment file does not exist!"), ("", "Invalid deployment file!"))
+)
 def test_try_to_load_deployment_file_fail(tmpdir, file_contents: Optional[str], error_message: str):
     tmpfile = tmpdir.join("deployment_file")
 

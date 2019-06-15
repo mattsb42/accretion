@@ -1,21 +1,9 @@
 """Utilities for working with CloudFormation stacks."""
 import uuid
 
-import boto3
-import botocore.session
+from . import boto3_session, Deployment
 
-__all__ = ("deploy_stack", "destroy_stack")
-
-
-def _boto3_session(*, region: str) -> boto3.session.Session:
-    """Generate a threading-friendly boto3 session for ``region``.
-
-    :param str region: Region to target
-    :return: independent boto3 session for ``region``
-    :rtype: boto3.session.Session
-    """
-    botocore_session = botocore.session.Session()
-    return boto3.session.Session(botocore_session=botocore_session, region_name=region)
+__all__ = ("artifacts_bucket", "deploy_stack", "destroy_stack")
 
 
 def deploy_stack(*, region: str, template: str, **parameters) -> str:
@@ -28,8 +16,8 @@ def deploy_stack(*, region: str, template: str, **parameters) -> str:
     :rtype: str
     """
     stack_name = f"Accretion-{uuid.uuid4()}"
-    boto3_session = _boto3_session(region=region)
-    cfn_client = boto3_session.client("cloudformation")
+    session = boto3_session(region=region)
+    cfn_client = session.client("cloudformation")
 
     kwargs = dict(StackName=stack_name, TemplateBody=template)
 
@@ -51,10 +39,23 @@ def destroy_stack(*, region: str, stack_name: str):
     :param str stack_name: Stack name
     """
     # TODO: Empty buckets...
-    boto3_session = _boto3_session(region=region)
-    cfn_client = boto3_session.client("cloudformation")
+    session = boto3_session(region=region)
+    cfn_client = session.client("cloudformation")
 
     cfn_client.delete_stack(StackName=stack_name)
 
     stack_destroyed = cfn_client.get_waiter("stack_delete_complete")
     stack_destroyed.wait(StackName=stack_name, WaiterConfig=dict(MaxAttempts=50))
+
+
+def artifacts_bucket(*, region: str, regional_record: Deployment) -> str:
+    """"""
+    session = boto3_session(region=region)
+    cfn_client = session.client("cloudformation")
+
+    response = cfn_client.describe_stack_resource(
+        StackName=regional_record.Core,
+        LogicalResourceId="SourceBucket"
+    )
+
+    return response["StackResourceDetail"]["PhysicalResourceId"]
