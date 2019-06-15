@@ -29,6 +29,7 @@ def _deploy_in_region(*, region: str, deployment: Deployment, workers_zip_data: 
     stack_name = deploy_stack(
         region=region, template=template.to_json(), allow_iam=True, ArtifactBucketName=bucket, WorkersS3Key=key
     )
+    deployment.ArtifactBuilder = stack_name
     click.echo(f"Artifact builder stack {stack_name} successfully deployed in {region}")
 
 
