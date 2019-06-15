@@ -28,13 +28,15 @@ def _file_filter(filename: str) -> bool:  # pylint: disable=unused-argument
 #    return True
 
 
-def build_zip(build_dir: str) -> io.BytesIO:
+def build_zip(build_dir: str, layer: bool = True) -> io.BytesIO:
     """Build a Lambda Layer zip from a given directory.
 
     :param str build_dir: Directory to pack into Layer zip
+    :param bool layer: Is this zip being build for a layer (True) or a Function (False)?
     :returns: Binary file-like of zip
     :rtype: io.BytesIO
     """
+    prefix = "python/" if layer else ""
     buffer = io.BytesIO()
     with ZipFile(buffer, mode="w") as zipper:
         for root, _dirs, files in os.walk(build_dir):
@@ -43,7 +45,7 @@ def build_zip(build_dir: str) -> io.BytesIO:
                     continue
 
                 filepath = os.path.join(root, filename)
-                zipper.write(filename=filepath, arcname=f"python/{filepath[len(build_dir) + 1:]}")
+                zipper.write(filename=filepath, arcname=f"{prefix}{filepath[len(build_dir) + 1:]}")
 
     _LOGGER.debug("Zip file size: %s bytes", buffer.tell())
     buffer.seek(0)
