@@ -1,0 +1,8 @@
+{
+    "Name": "TestRawRequirementsSimple",
+    "Language": "python",
+    "Requirements": {
+        "Type": "requirements.txt",
+        "Requirements": "attrs\nawacs\nClick\nboto3\nbotocore\n"
+    }
+}

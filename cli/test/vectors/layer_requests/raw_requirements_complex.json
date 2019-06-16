@@ -1,0 +1,8 @@
+{
+    "Name": "TestRawRequirementsComplex",
+    "Language": "python",
+    "Requirements": {
+        "Type": "requirements.txt",
+        "Requirements": "attrs\ntroposphere[policy]\nawacs >= 0.9.0\nClick >= 7.0\naccretion_common >= 0.0.1b3\nboto3\nbotocore\n"
+    }
+}

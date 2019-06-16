@@ -8,6 +8,7 @@ from typing import Dict, Iterable
 
 import boto3
 from accretion_common.constants import ARTIFACT_MANIFESTS_PREFIX
+from accretion_common.util import PackageDetails
 from accretion_common.venv_magic.builder import build_requirements
 from accretion_common.venv_magic.uploader import artifact_exists, efficient_build_and_upload_zip
 
@@ -98,7 +99,12 @@ def lambda_handler(event, context):
 
         {
             "Name": "layer name",
-            "Requirements": ["List of requirements"]
+            "Requirements": [
+                {
+                    "Name": "Requirement Name",
+                    "Details": "Requirement version or other identifying details"
+                }
+            ]
         }
 
     Return shape:
@@ -126,7 +132,8 @@ def lambda_handler(event, context):
             _setup()
 
         _clean_env()
-        installed = build_requirements(build_dir=BUILD_DIR, venv_dir=VENV_DIR, requirements=event["Requirements"])
+        requirements = [PackageDetails(**reqs) for reqs in event["Requirements"]]
+        installed = build_requirements(build_dir=BUILD_DIR, venv_dir=VENV_DIR, requirements=requirements)
         artifact_key, manifest_key = _upload_artifacts(event["Name"], event["Requirements"], installed)
         return {
             "Installed": installed,

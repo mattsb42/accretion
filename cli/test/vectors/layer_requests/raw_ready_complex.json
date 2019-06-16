@@ -1,0 +1,33 @@
+{
+    "Name": "TestRawReadyComplex",
+    "Language": "python",
+    "Requirements": {
+        "Type": "ready",
+        "Requirements": [
+            {
+                "Name": "attrs",
+                "Details": "==19.1.0"
+            },
+            {
+                "Name": "troposphere",
+                "Details": "[policy]"
+            },
+            {
+                "Name": "awacs",
+                "Details": " >= 0.9.0"
+            },
+            {
+                "Name": "Click",
+                "Details": " >= 7.0"
+            },
+            {
+                "Name": "boto3",
+                "Details": ""
+            },
+            {
+                "Name": "botocore",
+                "Details": ""
+            }
+        ]
+    }
+}

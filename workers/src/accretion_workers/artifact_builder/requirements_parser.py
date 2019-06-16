@@ -1,15 +1,17 @@
 """Accretion requirements parser."""
 import logging
 import re
-from typing import Iterator, Union
+from typing import Dict, Iterator, Union
+
+from accretion_common.util import PackageDetails
 
 MAX_NAME_LENGTH = 70
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
-def _requirements_txt_to_ready(requirements_txt: str) -> Iterator[str]:
-    return requirements_txt.strip().split()
+def _requirements_txt_to_ready(requirements_txt: str) -> Iterator[Dict[str, str]]:
+    return [PackageDetails.from_requirements_entry(line).to_dict() for line in requirements_txt.strip().splitlines()]
 
 
 def _validate_name(project_name: str):
@@ -26,7 +28,7 @@ def _validate_name(project_name: str):
         raise Exception(f"Project name must not be longer than {MAX_NAME_LENGTH} characters")
 
 
-def _validate_ready_requirements(requirements: Iterator[str]):
+def _validate_ready_requirements(requirements: Iterator[Dict[str, str]]):
     for req in requirements:
         if not req:
             raise Exception(f"Invalid requirements: {req!r}")
@@ -40,7 +42,7 @@ def _validate_languge(language: str) -> str:
     return language
 
 
-def _normalize_requirements(requirements_type: str, requirements: Union[str, Iterator[str]]) -> Iterator[str]:
+def _normalize_requirements(requirements_type: str, requirements: Union[str, Iterator[str]]) -> Iterator[Dict[str, str]]:
     requirements_parsers = {"ready": lambda x: x, "requirements.txt": _requirements_txt_to_ready}
 
     try:
@@ -70,7 +72,7 @@ def lambda_handler(event, context):
                 "Requirements": [
                     {
                         "Name": "Requirement Name",
-                        "Version": "Requirement Version"
+                        "Details": "Requirement version or other identifying details"
                     }
                 ]
             },
@@ -93,7 +95,12 @@ def lambda_handler(event, context):
         {
             "Name": "layer name",
             "Language": "Language to target",
-            "Requirements": ["List of requirements"]
+            "Requirements": [
+                {
+                    "Name": "Requirement Name",
+                    "Details": "Requirement version or other identifying details"
+                }
+            ]
         }
 
     Required permissions:

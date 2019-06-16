@@ -8,7 +8,7 @@ import venv
 from typing import Dict, Iterable
 
 from accretion_common.exceptions import ExecutionError
-from accretion_common.util import PackageVersion
+from accretion_common.util import PackageDetails
 
 __all__ = ("build_requirements",)
 _LOGGER = logging.getLogger(__name__)
@@ -38,10 +38,10 @@ def _build_venv(venv_dir: str) -> (str, str):
     return _execute_in_venv(venv_dir=venv_dir, command="pip install --no-cache-dir --upgrade pip")
 
 
-def _build_requirements_file(requirements_file: str, *libraries: str):
+def _build_requirements_file(requirements_file: str, *libraries: PackageDetails):
     with open(requirements_file, "w") as requirements:
         for library in libraries:
-            requirements.write(f"{library}\n")
+            requirements.write(f"{library.Name}{library.Details}\n")
 
 
 def _install_requirements_to_build(build_dir: str, requirements_file: str, log_file: str, venv_dir: str) -> (str, str):
@@ -65,10 +65,12 @@ def _parse_install_log(log_file: str) -> Iterable[Dict[str, str]]:
                 installed = line.split()
                 break
     _LOGGER.debug("Installed to layer artifact: %s", installed)
-    return [PackageVersion.from_pip_log(log_entry).to_dict() for log_entry in installed]
+    return [PackageDetails.from_pip_log(log_entry).to_dict() for log_entry in installed]
 
 
-def build_requirements(build_dir: str, venv_dir: str, requirements: Iterable[str]) -> Iterable[Dict[str, str]]:
+def build_requirements(
+    build_dir: str, venv_dir: str, requirements: Iterable[PackageDetails]
+) -> Iterable[Dict[str, str]]:
     """Build the requested requirements into the target build directory using a newly created venv.
 
     :param str build_dir: Path to directory into which to build requirements.

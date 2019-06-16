@@ -25,7 +25,7 @@ def _key_hash(installed: Iterable[Dict[str, str]], runtime_name: str, force_new:
     hasher = hashlib.sha256()
 
     hasher.update(b"===INSTALLED===")
-    for statement in sorted([package["Name"] + "-" + package["Version"] for package in installed]):
+    for statement in sorted([package["Name"] + "-" + package["Details"] for package in installed]):
         hasher.update(statement.encode("utf-8"))
 
     hasher.update(b"===RUNTIMES===")

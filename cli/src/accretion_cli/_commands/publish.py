@@ -28,10 +28,15 @@ def _publish_to_all_regions(*, record: DeploymentFile, request: str):
         _publish_in_single_region(region=region, regional_record=regional_record, request=request)
 
 
-@click.command("publish")
+@click.group("publish")
+def publish_new_layer():
+    """Request a new layer version build."""
+
+
+@publish_new_layer.command("raw")
 @click.argument("deployment_file", required=True, type=click.File("r", encoding="utf-8"))
 @click.argument("request_file", required=True, type=click.File("r", encoding="utf-8"))
-def publish_new_layer(deployment_file: IO, request_file: IO):
+def publish_raw_request(deployment_file: IO, request_file: IO):
     """Request a new layer based on a request config.
 
     .. code:: json
@@ -44,7 +49,7 @@ def publish_new_layer(deployment_file: IO, request_file: IO):
                 "Requirements": [
                     {
                         "Name": "Requirement Name",
-                        "Version": "Requirement Version"
+                        "Details": "Requirement version or other identifying details"
                     }
                 ]
             },
@@ -67,3 +72,19 @@ def publish_new_layer(deployment_file: IO, request_file: IO):
     # TODO: Validate the request
 
     _publish_to_all_regions(record=record, request=request)
+
+
+@publish_new_layer.command("requirements")
+@click.argument("deployment_file", required=True, type=click.File("r", encoding="utf-8"))
+@click.argument("layer_name", required=True, type=click.STRING)
+@click.argument("requirements_file", required=True, type=click.File("r", encoding="utf-8"))
+def publish_requirements_request(deployment_file: IO, layer_name: str, requirements_file: IO):
+    """Request a new Python layer based on a requirements.txt format file."""
+    record = DeploymentFile.from_dict(json.load(deployment_file))
+
+    requirements = requirements_file.read()
+    request = dict(
+        Name=layer_name, Language="python", Requirements=dict(Type="requirements.txt", Requirements=requirements)
+    )
+
+    _publish_to_all_regions(record=record, request=json.dumps(request))
