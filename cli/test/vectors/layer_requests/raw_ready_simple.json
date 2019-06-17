@@ -2,7 +2,7 @@
     "Name": "TestRawReadySimple",
     "Language": "python",
     "Requirements": {
-        "Type": "ready",
+        "Type": "accretion",
         "Requirements": [
             {
                 "Name": "attrs",

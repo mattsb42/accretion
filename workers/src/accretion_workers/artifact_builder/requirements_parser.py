@@ -10,7 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
-def _requirements_txt_to_ready(requirements_txt: str) -> Iterator[Dict[str, str]]:
+def _requirements_txt_to_accretion(requirements_txt: str) -> Iterator[Dict[str, str]]:
     return [PackageDetails.from_requirements_entry(line).to_dict() for line in requirements_txt.strip().splitlines()]
 
 
@@ -45,7 +45,7 @@ def _validate_languge(language: str) -> str:
 def _normalize_requirements(
     requirements_type: str, requirements: Union[str, Iterator[str]]
 ) -> Iterator[Dict[str, str]]:
-    requirements_parsers = {"ready": lambda x: x, "requirements.txt": _requirements_txt_to_ready}
+    requirements_parsers = {"accretion": lambda x: x, "requirements.txt": _requirements_txt_to_accretion}
 
     try:
         parser = requirements_parsers[requirements_type]
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
             "Name": "layer name",
             "Language": "Language to target",
             "Requirements": {
-                "Type": "ready",
+                "Type": "accretion",
                 "Requirements": [
                     {
                         "Name": "Requirement Name",

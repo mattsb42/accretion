@@ -46,7 +46,7 @@ def publish_raw_request(deployment_file: IO, request_file: IO):
             "Name": "layer name",
             "Language": "Language to target",
             "Requirements": {
-                "Type": "ready",
+                "Type": "accretion",
                 "Requirements": [
                     {
                         "Name": "Requirement Name",

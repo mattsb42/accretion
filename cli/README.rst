@@ -214,7 +214,7 @@ It is a JSON file with the following structure:
         "Name": "layer name",
         "Language": "Language to target",
         "Requirements": {
-            "Type": "ready",
+            "Type": "accretion",
             "Requirements": [
                 {
                     "Name": "Requirement Name",
