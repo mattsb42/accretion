@@ -3,9 +3,9 @@ from typing import Iterable
 
 import click
 
+from ...._commands.update.all import update_all_regions
 from ...._util import Deployment
 from ...._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
-from ...._commands.update.all import update_all_regions
 
 __all__ = ("add_more_regions",)
 

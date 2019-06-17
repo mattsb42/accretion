@@ -9,10 +9,7 @@ from accretion_common.venv_magic.builder import build_requirements
 from accretion_common.venv_magic.zipper import build_zip
 
 __all__ = ("build_and_write_workers", "build_worker_bytes")
-WORKERS_PACKAGE = PackageDetails(
-    Name="accretion_workers",
-    Details="==0.0.2b7"
-)
+WORKERS_PACKAGE = PackageDetails(Name="accretion_workers", Details="==0.0.2b7")
 
 
 def build_and_write_workers(*, outfile: IO):

@@ -10,9 +10,9 @@ from accretion_common.constants import SOURCE_PREFIX
 from ..._templates import artifact_builder, replication_listener, source_region_core
 from ..._util import Deployment, DeploymentFile
 from ..._util.cloudformation import artifacts_bucket, deploy_stack, update_stack
+from ..._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
 from ..._util.s3 import upload_artifact
 from ..._util.workers_zip import build_worker_bytes
-from ..._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
 
 __all__ = ("update_single_region", "update_all_regions", "update_all_deployments")
 _TEMPLATE_BUILDERS = dict(ArtifactBuilder=artifact_builder, LayerBuilder=replication_listener, Core=source_region_core)
@@ -28,7 +28,9 @@ def _template_kwargs(*, logical_name: str, bucket: str, key: str) -> Dict[str, s
         raise ValueError(f"Unknown logical name: {logical_name}")
 
 
-def _create_single_stack(*, region: str, logical_name: str, regional_record: Deployment, template_kwargs: Dict[str, str]):
+def _create_single_stack(
+    *, region: str, logical_name: str, regional_record: Deployment, template_kwargs: Dict[str, str]
+):
     """Create a single stack in a single region."""
     template = _TEMPLATE_BUILDERS[logical_name].build().to_json()
 
@@ -47,23 +49,19 @@ def _update_single_stack(*, region: str, logical_name: str, stack_name: str, tem
     click.echo(f"{logical_name} stack in {region} successfully updated")
 
 
-def _upsert_single_stack(*, region: str, logical_name: str, regional_record: Deployment, template_kwargs: Dict[str, str]):
+def _upsert_single_stack(
+    *, region: str, logical_name: str, regional_record: Deployment, template_kwargs: Dict[str, str]
+):
     """Update a single stack in a single region."""
     stack_name = getattr(regional_record, logical_name)
 
     if stack_name is None:
         _create_single_stack(
-            region=region,
-            logical_name=logical_name,
-            regional_record=regional_record,
-            template_kwargs=template_kwargs
+            region=region, logical_name=logical_name, regional_record=regional_record, template_kwargs=template_kwargs
         )
     else:
         _update_single_stack(
-            region=region,
-            logical_name=logical_name,
-            stack_name=stack_name,
-            template_kwargs=template_kwargs,
+            region=region, logical_name=logical_name, stack_name=stack_name, template_kwargs=template_kwargs
         )
 
 
@@ -76,12 +74,7 @@ def update_single_region(*, region: str, regional_record: Deployment, workers_zi
     :return:
     """
     click.echo("Building zip file for workers")
-    _upsert_single_stack(
-        region=region,
-        logical_name="Core",
-        regional_record=regional_record,
-        template_kwargs=dict()
-    )
+    _upsert_single_stack(region=region, logical_name="Core", regional_record=regional_record, template_kwargs=dict())
 
     # Upload workers zip to core stack bucket
     click.echo(f"Locating artifacts bucket in region {region}")
@@ -103,11 +96,8 @@ def update_single_region(*, region: str, regional_record: Deployment, workers_zi
         call = threading.Thread(
             target=_upsert_single_stack,
             kwargs=dict(
-                region=region,
-                logical_name=field.name,
-                regional_record=regional_record,
-                template_kwargs=template_kwargs,
-            )
+                region=region, logical_name=field.name, regional_record=regional_record, template_kwargs=template_kwargs
+            ),
         )
         calls.append(call)
         call.start()
@@ -131,7 +121,7 @@ def update_all_regions(*, record: DeploymentFile):
     for region, stacks in record.Deployments.items():
         call = threading.Thread(
             target=update_single_region,
-            kwargs=dict(region=region, regional_record=stacks, workers_zip_data=workers_zip_data)
+            kwargs=dict(region=region, regional_record=stacks, workers_zip_data=workers_zip_data),
         )
         calls.append(call)
         call.start()

@@ -96,7 +96,7 @@ The Layer must be described in the Accretion format in ``REQUEST_FILE``.
         "Name": "layer name",
         "Language": "Language to target",
         "Requirements": {
-            "Type": "ready",
+            "Type": "accretion",
             "Requirements": [
                 {
                     "Name": "Requirement Name",
