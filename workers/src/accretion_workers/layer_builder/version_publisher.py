@@ -1,5 +1,4 @@
 """Given a new artifact, publish a new Layer."""
-import hashlib
 import json
 import os
 from typing import Iterator
@@ -40,7 +39,7 @@ _MINIFIED_RUNTIMES = {
 }
 
 
-def _layer_name(project_name: str, runtimes: Iterator[str]):
+def _layer_name(*, project_name: str, runtimes: Iterator[str]):
     squashed_runtimes = "".join(sorted(runtimes)).replace(".", "")
     for runtime, minified in _MINIFIED_RUNTIMES.items():
         squashed_runtimes = squashed_runtimes.replace(runtime, minified)
@@ -52,18 +51,30 @@ def _layer_name(project_name: str, runtimes: Iterator[str]):
     return layer_name
 
 
-def _publish_layer(project_name: str, artifact_bucket: str, artifact_key: str, runtimes: Iterator[str]) -> (str, int):
+def _layer_manifest_s3_prefix(*, layer_name: str) -> str:
+    return f"{LAYER_MANIFESTS_PREFIX}{layer_name}/"
+
+
+def _layer_manifest_s3_key(*, layer_name: str, layer_version: int) -> str:
+    return f"{_layer_manifest_s3_prefix(layer_name=layer_name)}{layer_version}.json"
+
+
+def _publish_layer(
+    *, project_name: str, artifact_bucket: str, artifact_key: str, runtimes: Iterator[str]
+) -> (str, int):
     layer_name = _layer_name(project_name=project_name, runtimes=runtimes)
+    description = f"Accretion manifests: s3://{_bucket_name}/{_layer_manifest_s3_prefix(layer_name=layer_name)}"
+
     response = _aws_lambda.publish_layer_version(
         LayerName=layer_name,
-        Description="Created by Accretion. See layer manifest for details.",
+        Description=description,
         Content=dict(S3Bucket=artifact_bucket, S3Key=artifact_key),
         CompatibleRuntimes=runtimes,
     )
     return response["LayerArn"], response["Version"]
 
 
-def _set_layer_permissions(layer_arn: str, layer_version: str, manifest_key: str):
+def _set_layer_permissions(*, layer_arn: str, layer_version: str, manifest_key: str):
     artifact_id = manifest_key[manifest_key.rindex("/") + 1 : manifest_key.rindex(".")]
     _aws_lambda.add_layer_version_permission(
         LayerName=layer_arn,
@@ -74,22 +85,10 @@ def _set_layer_permissions(layer_arn: str, layer_version: str, manifest_key: str
     )
 
 
-def _key_hash(layer_arn: str, layer_version: int) -> str:
-    hasher = hashlib.sha256()
-
-    hasher.update(b"===Arn===")
-    hasher.update(layer_arn.encode("utf-8"))
-    hasher.update(b"===Version===")
-    hasher.update(str(layer_version).encode("utf-8"))
-
-    return hasher.hexdigest()
-
-
 def _publish_layer_manifest(
-    project_name: str, layer_arn: str, layer_version: int, manifest_bucket: str, manifest_key: str
+    *, layer_name: str, layer_arn: str, layer_version: int, manifest_bucket: str, manifest_key: str
 ) -> str:
-    artifact_id = _key_hash(layer_arn, layer_version)
-    s3_key = f"{LAYER_MANIFESTS_PREFIX}{project_name}/{artifact_id}.layer"
+    s3_key = _layer_manifest_s3_key(layer_name=layer_name, layer_version=layer_version)
 
     body = json.dumps(
         dict(
@@ -155,16 +154,15 @@ def lambda_handler(event, context):
         manifest_bucket = artifact_bucket = event["Artifact"]["Location"]["S3Bucket"]
         artifact_key = event["Artifact"]["Location"]["S3Key"]
         manifest_key = event["ResourceKey"]
+        runtimes = event["Artifact"]["Runtimes"]
 
+        layer_name = _layer_name(project_name=project_name, runtimes=runtimes)
         layer_arn, layer_version = _publish_layer(
-            project_name=project_name,
-            artifact_bucket=artifact_bucket,
-            artifact_key=artifact_key,
-            runtimes=event["Artifact"]["Runtimes"],
+            project_name=project_name, artifact_bucket=artifact_bucket, artifact_key=artifact_key, runtimes=runtimes
         )
         _set_layer_permissions(layer_arn=layer_arn, layer_version=layer_version, manifest_key=manifest_key)
         layer_manifest_key = _publish_layer_manifest(
-            project_name=project_name,
+            layer_name=layer_name,
             layer_arn=layer_arn,
             layer_version=layer_version,
             manifest_bucket=manifest_bucket,

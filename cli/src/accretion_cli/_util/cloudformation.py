@@ -2,12 +2,51 @@
 import uuid
 
 import botocore.client
+import botocore.exceptions
 import click
 
 from . import Deployment, boto3_session
 from .s3 import empty_bucket
 
-__all__ = ("artifacts_bucket", "artifact_builder_state_machine", "deploy_stack", "destroy_stack")
+__all__ = ("artifacts_bucket", "artifact_builder_state_machine", "deploy_stack", "destroy_stack", "update_stack")
+
+
+def update_stack(*, region: str, stack_name: str, template: str, allow_iam: bool = False, **parameters: str):
+    """Update an existing CloudFormation stack in a thread-friendly way.
+
+    :param str region: AWS region to target
+    :param str stack_name: Stack name
+    :param str template: Stack template body
+    :param bool allow_iam: Should this stack be allowed to create IAM resources?
+    :param parameters: Stack parameters
+    """
+    session = boto3_session(region=region)
+    cfn_client = session.client("cloudformation")
+
+    kwargs = dict(StackName=stack_name, TemplateBody=template)
+
+    if allow_iam:
+        kwargs["Capabilities"] = ["CAPABILITY_IAM"]
+
+    if parameters:
+        kwargs["Parameters"] = [dict(ParameterKey=key, ParameterValue=value) for key, value in parameters.items()]
+
+    try:
+        cfn_client.update_stack(**kwargs)
+    except botocore.exceptions.ClientError as error:
+        try:
+            message = error.response["Error"]["Message"]
+        except KeyError:
+            raise error
+
+        if message == "No updates are to be performed.":
+            click.echo(f"Stack {stack_name} in {region} is already up to date.")
+            return
+
+        raise
+
+    created_waiter = cfn_client.get_waiter("stack_update_complete")
+    created_waiter.wait(StackName=stack_name, WaiterConfig=dict(MaxAttempts=50))
 
 
 def deploy_stack(*, region: str, template: str, allow_iam: bool = False, **parameters: str) -> str:

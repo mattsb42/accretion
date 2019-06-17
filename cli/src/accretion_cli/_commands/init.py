@@ -11,10 +11,10 @@ from .._templates import source_region_core
 from .._util import Deployment, DeploymentFile
 from .._util.cloudformation import deploy_stack
 
-__all__ = ("init_project", "init_all_regions")
+__all__ = ("init_project", "init_all_regions", "init_single_region")
 
 
-def _init_in_region(*, region: str, deployment: Deployment):
+def init_single_region(*, region: str, deployment: Deployment):
     """Deploy a single init stack in a single region.
 
     :param str region: Region to target
@@ -39,7 +39,7 @@ def init_all_regions(*, regions: Iterable[str], record: DeploymentFile):
             click.echo(f"Region {region} is already initialized. Skipping.", file=sys.stdout)
             continue
 
-        call = threading.Thread(target=_init_in_region, kwargs=dict(region=region, deployment=regional_record))
+        call = threading.Thread(target=init_single_region, kwargs=dict(region=region, deployment=regional_record))
         calls.append(call)
         call.start()
 
