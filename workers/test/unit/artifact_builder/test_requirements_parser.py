@@ -16,52 +16,39 @@ REQUIREMENTS = "requirements.txt"
 @pytest.mark.parametrize(
     "request_body, expected_response",
     (
-            (
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=dict(
-                        Type=READY,
-                        Requirements=[
-                            dict(Name="attrs", Details="==19.1.0"),
-                            dict(Name="awacs", Details="==0.9.2"),
-                            dict(Name="Click", Details="==7.0"),
-                            dict(Name="boto3", Details="==1.9.169"),
-                            dict(Name="botocore", Details="==1.12.169"),
-                        ]
-                    )
-                ),
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
+        (
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=dict(
+                    Type=READY,
                     Requirements=[
                         dict(Name="attrs", Details="==19.1.0"),
                         dict(Name="awacs", Details="==0.9.2"),
                         dict(Name="Click", Details="==7.0"),
                         dict(Name="boto3", Details="==1.9.169"),
                         dict(Name="botocore", Details="==1.12.169"),
-                    ]
-                )
-            ),
-            (
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=dict(
-                        Type=READY,
-                        Requirements=[
-                            dict(Name="attrs", Details=""),
-                            dict(Name="troposphere", Details="[policy]"),
-                            dict(Name="awacs", Details=">=0.9.2"),
-                            dict(Name="Click", Details=">=7.0"),
-                            dict(Name="boto3", Details=""),
-                            dict(Name="botocore", Details=""),
-                        ]
-                    )
+                    ],
                 ),
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
+            ),
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=[
+                    dict(Name="attrs", Details="==19.1.0"),
+                    dict(Name="awacs", Details="==0.9.2"),
+                    dict(Name="Click", Details="==7.0"),
+                    dict(Name="boto3", Details="==1.9.169"),
+                    dict(Name="botocore", Details="==1.12.169"),
+                ],
+            ),
+        ),
+        (
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=dict(
+                    Type=READY,
                     Requirements=[
                         dict(Name="attrs", Details=""),
                         dict(Name="troposphere", Details="[policy]"),
@@ -69,66 +56,70 @@ REQUIREMENTS = "requirements.txt"
                         dict(Name="Click", Details=">=7.0"),
                         dict(Name="boto3", Details=""),
                         dict(Name="botocore", Details=""),
-                    ]
-                )
-            ),
-            (
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=dict(
-                        Type=REQUIREMENTS,
-                        Requirements="\n".join([
-                            "attrs==19.1.0",
-                            "awacs==0.9.2",
-                            "Click==7.0",
-                            "boto3==1.9.169",
-                            "botocore==1.12.169",
-                        ])
-                    )
+                    ],
                 ),
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=[
-                        dict(Name="attrs", Details="==19.1.0"),
-                        dict(Name="awacs", Details="==0.9.2"),
-                        dict(Name="Click", Details="==7.0"),
-                        dict(Name="boto3", Details="==1.9.169"),
-                        dict(Name="botocore", Details="==1.12.169"),
-                    ]
-                )
             ),
-            (
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=dict(
-                        Type=REQUIREMENTS,
-                        Requirements="\n".join([
-                            "attrs",
-                            "troposphere[policy]",
-                            "awacs>=0.9.2",
-                            "Click>=7.0",
-                            "boto3",
-                            "botocore",
-                        ])
-                    )
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=[
+                    dict(Name="attrs", Details=""),
+                    dict(Name="troposphere", Details="[policy]"),
+                    dict(Name="awacs", Details=">=0.9.2"),
+                    dict(Name="Click", Details=">=7.0"),
+                    dict(Name="boto3", Details=""),
+                    dict(Name="botocore", Details=""),
+                ],
+            ),
+        ),
+        (
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=dict(
+                    Type=REQUIREMENTS,
+                    Requirements="\n".join(
+                        ["attrs==19.1.0", "awacs==0.9.2", "Click==7.0", "boto3==1.9.169", "botocore==1.12.169"]
+                    ),
                 ),
-                dict(
-                    Name=LAYER_NAME,
-                    Language=PYTHON,
-                    Requirements=[
-                        dict(Name="attrs", Details=""),
-                        dict(Name="troposphere", Details="[policy]"),
-                        dict(Name="awacs", Details=">=0.9.2"),
-                        dict(Name="Click", Details=">=7.0"),
-                        dict(Name="boto3", Details=""),
-                        dict(Name="botocore", Details=""),
-                    ]
-                )
-            )
-    )
+            ),
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=[
+                    dict(Name="attrs", Details="==19.1.0"),
+                    dict(Name="awacs", Details="==0.9.2"),
+                    dict(Name="Click", Details="==7.0"),
+                    dict(Name="boto3", Details="==1.9.169"),
+                    dict(Name="botocore", Details="==1.12.169"),
+                ],
+            ),
+        ),
+        (
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=dict(
+                    Type=REQUIREMENTS,
+                    Requirements="\n".join(
+                        ["attrs", "troposphere[policy]", "awacs>=0.9.2", "Click>=7.0", "boto3", "botocore"]
+                    ),
+                ),
+            ),
+            dict(
+                Name=LAYER_NAME,
+                Language=PYTHON,
+                Requirements=[
+                    dict(Name="attrs", Details=""),
+                    dict(Name="troposphere", Details="[policy]"),
+                    dict(Name="awacs", Details=">=0.9.2"),
+                    dict(Name="Click", Details=">=7.0"),
+                    dict(Name="boto3", Details=""),
+                    dict(Name="botocore", Details=""),
+                ],
+            ),
+        ),
+    ),
 )
 def test_parse_requirements(request_body, expected_response):
     test = requirements_parser.lambda_handler(request_body, None)

@@ -42,7 +42,9 @@ def _validate_languge(language: str) -> str:
     return language
 
 
-def _normalize_requirements(requirements_type: str, requirements: Union[str, Iterator[str]]) -> Iterator[Dict[str, str]]:
+def _normalize_requirements(
+    requirements_type: str, requirements: Union[str, Iterator[str]]
+) -> Iterator[Dict[str, str]]:
     requirements_parsers = {"ready": lambda x: x, "requirements.txt": _requirements_txt_to_ready}
 
     try:
