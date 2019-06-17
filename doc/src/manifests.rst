@@ -25,7 +25,7 @@ the artifact builder also creates a manifest file that describes what that artif
 
     {
         "ProjectName": "example layer",
-        "ArtifactS3Key": "accretion/artifacts/example layer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.zip",
+        "ArtifactS3Key": "accretion/artifacts/exampleLayer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.zip",
         "Requirements": [
             "cryptography",
             "requests"
@@ -96,11 +96,11 @@ the layer builder creates a manifest file that describes that Layer.
 
     {
         "Layer": {
-            "Arn": "",
+            "Arn": "arn:aws:states:region:account-id:stateMachine:stateMachineName",
             "Version": 3
         },
         "ArtifactManifest": {
             "S3Bucket": "accretion-regional-bucket",
-            "S3Key": "accretion/manifests/example layer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.manifest"
+            "S3Key": "accretion/manifests/exampleLayer/4b14d8bf-61ff-4514-9f9a-ebb59dba08fe.manifest"
         }
     }

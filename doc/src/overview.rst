@@ -78,28 +78,35 @@ There are several components needed to solve this:
 
 #. **Artifact Builder.**
    Given a dependency definition, build a dependency artifact.
-#. **Region Replicator.**
-   Given a dependency artifact and contents details, replicate to multiple regions.
 #. **Layer Creator.**
    Given a dependency artifact and details, determine whether it differs from the previous Layer version.
    If it does, publish a new Layer version.
-#. **Simple API.**
+#. **Simple CLI.**
    In addition to the lower-level resources that will build and orchestrate all of the above,
-   a simple API should be defined that provides access to and information about all managed resources
+   a simple CLI should be defined that provides access to important information about all managed resources
    as well as the ability to create new resources.
 
 Moving Forward
 ==============
 
-Moving forward, some additional features that should be added:
+Moving forward, some additional features that should be considered:
 
-#. Support for additional languages.
-   The system architecture is designed to support arbitrary languages,
-   but initially only Python builders are defined.
-#. Support for private artifacts and Layers.
-   This will require some way to define the permissions for a Layer.
-#. Support for private artifact repositories.
-#. Support for custom builders.
-   This could cover both additional languages and non-standard artifact repositories.
-#. Scheduled re-creation of Layers.
-#. Event source for updates to public package repositories.
+* Support for additional languages.
+  The system architecture is designed to support arbitrary languages,
+  but initially only Python builders are defined.
+* Support for private artifacts and Layers.
+  This will require some way to define the permissions for a Layer.
+* Support for private artifact repositories.
+* Support for custom builders.
+  This could cover both additional languages and non-standard artifact repositories.
+* Scheduled re-creation of Layers.
+* Event source for updates to public package repositories.
+* Global artifact replication.
+  The original plan was to have a single artifact builder
+  with an artifact replication layer that would send those artifacts to all target regions.
+  This plan was abandoned because the full regional isolation is both
+  much simpler to manage and probably a better idea for isolation anyway.
+  However, the artifact and layer builders are decoupled in such a way
+  that a replication layer could still be added between them.
+  Depending on demand, we can reconsider this.
+* An API that provides all of the capabilities of the CLI.
