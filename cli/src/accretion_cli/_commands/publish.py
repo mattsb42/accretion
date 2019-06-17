@@ -28,7 +28,7 @@ def _publish_to_all_regions(*, record: DeploymentFile, request: str):
         _publish_in_single_region(region=region, regional_record=regional_record, request=request)
 
 
-@click.group("publish")
+@click.group("request")
 def publish_new_layer():
     """Request a new layer version build."""
 
