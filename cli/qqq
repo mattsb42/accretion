@@ -1,0 +1,19 @@
+{
+    "Deployments": {
+        "us-west-2": {
+            "Core": "Accretion-0c5a4a11-a421-4b7c-bb44-7e6d17138461",
+            "ArtifactBuilder": "Accretion-2481c155-406f-4990-8cb5-f331820364eb",
+            "LayerBuilder": "Accretion-913972e8-8d77-404f-b557-739dc668424b"
+        },
+        "us-west-1": {
+            "Core": "Accretion-03023965-14e3-41b5-aad8-20011ebcee52",
+            "ArtifactBuilder": "Accretion-4bdbf0ab-109b-422e-b64a-bca023a75d00",
+            "LayerBuilder": "Accretion-2b99c434-7d8e-4d96-947b-fb6e9b0304f0"
+        },
+        "us-east-1": {
+            "Core": "Accretion-5ecd1775-cb2a-427e-ae49-494862c9d01d",
+            "ArtifactBuilder": "Accretion-cc95aef1-3706-4ec2-af32-5e0d466c27c2",
+            "LayerBuilder": "Accretion-185da7fa-7eb4-4430-a264-2cab3c7dcbd6"
+        }
+    }
+}

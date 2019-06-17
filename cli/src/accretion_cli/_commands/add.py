@@ -16,9 +16,9 @@ def add_to_deployment_file():
 @click.argument("deployment_file", required=True, type=click.STRING)
 @click.argument("regions", required=True, type=click.STRING, nargs=-1)
 def add_more_regions(deployment_file: str, regions: Iterable[str]):
-    """Add more regions to an existing deployment description in DEPLOYMENT_FILE.
+    """Add more REGIONS to an existing deployment description in DEPLOYMENT_FILE.
 
-    This does NOT deploy to those reqions.
+    This does NOT deploy to those regions.
 
     Run "accretion update" to update and fill all regions in a deployment file.
     """
