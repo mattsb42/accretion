@@ -37,7 +37,8 @@ def publish_new_layer():
 @click.argument("deployment_file", required=True, type=click.File("r", encoding="utf-8"))
 @click.argument("request_file", required=True, type=click.File("r", encoding="utf-8"))
 def publish_raw_request(deployment_file: IO, request_file: IO):
-    """Request a new layer based on a request config.
+    """Request a new layer in every region in DEPLOYMENT_FILE.
+    The Layer must be described in the Accretion format in REQUEST_FILE.
 
     .. code:: json
 
@@ -79,7 +80,9 @@ def publish_raw_request(deployment_file: IO, request_file: IO):
 @click.argument("layer_name", required=True, type=click.STRING)
 @click.argument("requirements_file", required=True, type=click.File("r", encoding="utf-8"))
 def publish_requirements_request(deployment_file: IO, layer_name: str, requirements_file: IO):
-    """Request a new Python layer based on a requirements.txt format file."""
+    """Request a new layer named LAYER_NAME in every region in DEPLOYMENT_FILE.
+    The Layer requirements must be defined in the requirements.txt format in REQUEST_FILE.
+    """
     record = DeploymentFile.from_dict(json.load(deployment_file))
 
     requirements = requirements_file.read()

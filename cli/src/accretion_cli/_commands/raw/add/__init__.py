@@ -1,4 +1,4 @@
-"""Commands for ``accretion add``."""
+"""Commands for ``accretion raw add``."""
 import click
 
 from .artifact_builder import add_artifact_builder

@@ -1,18 +1,18 @@
-"""Command for ``accretion add layer-builder``."""
+"""Command for ``accretion raw add artifact-builder``."""
 import sys
 import threading
 
 import click
 from accretion_common.constants import SOURCE_PREFIX
 
-from ..._templates import replication_listener as template_builder
-from ..._util import Deployment, DeploymentFile
-from ..._util.cloudformation import artifacts_bucket, deploy_stack
-from ..._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
-from ..._util.s3 import upload_artifact
-from ..._util.workers_zip import build_worker_bytes
+from ...._templates import artifact_builder as template_builder
+from ...._util import Deployment, DeploymentFile
+from ...._util.cloudformation import artifacts_bucket, deploy_stack
+from ...._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
+from ...._util.s3 import upload_artifact
+from ...._util.workers_zip import build_worker_bytes
 
-__all__ = ("add_layer_builder", "deploy_all_regions")
+__all__ = ("add_artifact_builder", "deploy_all_regions")
 
 
 def _deploy_in_region(*, region: str, deployment: Deployment, workers_zip_data: bytes):
@@ -25,16 +25,16 @@ def _deploy_in_region(*, region: str, deployment: Deployment, workers_zip_data: 
     click.echo(f"Workers zip uploaded in {region}")
     # Deploy artifact builder in region
     template = template_builder.build()
-    click.echo(f"Deploying Layer Builder template in {region}")
+    click.echo(f"Deploying Artifact Builder template in {region}")
     stack_name = deploy_stack(
-        region=region, template=template.to_json(), allow_iam=True, ReplicationBucket=bucket, WorkersS3Key=key
+        region=region, template=template.to_json(), allow_iam=True, ArtifactBucketName=bucket, WorkersS3Key=key
     )
-    deployment.LayerBuilder = stack_name
-    click.echo(f"Layer builder stack {stack_name} successfully deployed in {region}")
+    deployment.ArtifactBuilder = stack_name
+    click.echo(f"Artifact builder stack {stack_name} successfully deployed in {region}")
 
 
 def deploy_all_regions(*, record: DeploymentFile, workers_zip_data: bytes):
-    """Deploy layer builder in all regions."""
+    """Deploy artifact builder in all regions."""
 
     calls = []
 
@@ -43,8 +43,8 @@ def deploy_all_regions(*, record: DeploymentFile, workers_zip_data: bytes):
             click.echo(f"Region {region} in deployment file is not initialized. Skipping.", file=sys.stderr)
             continue
 
-        if regional_record.LayerBuilder is not None:
-            click.echo(f"Layer builder is already deployed in {region}. Skipping.", file=sys.stdout)
+        if regional_record.ArtifactBuilder is not None:
+            click.echo(f"Artifact builder is already deployed in {region}. Skipping.", file=sys.stdout)
             continue
 
         call = threading.Thread(
@@ -59,15 +59,14 @@ def deploy_all_regions(*, record: DeploymentFile, workers_zip_data: bytes):
         call.join()
 
 
-@click.command("layer-builder")
+@click.command("artifact-builder")
 @click.argument("deployment_file", required=True, type=click.STRING)
-def add_layer_builder(deployment_file: str):
-    """Add the layer builder to an existing deployment."""
+def add_artifact_builder(deployment_file: str):
+    """Add the artifact builder to an existing deployment described in DEPLOYMENT_FILE."""
     record = try_to_load_deployment_file(deployment_file_name=deployment_file)
 
     workers_zip_data = build_worker_bytes()
 
-    # deploy to all regions
     deploy_all_regions(record=record, workers_zip_data=workers_zip_data)
 
     try_to_write_deployment_file(deployment_filename=deployment_file, record=record)

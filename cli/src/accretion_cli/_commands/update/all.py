@@ -1,7 +1,7 @@
 """Command for ``accretion update all``."""
 import json
 import threading
-from typing import IO, Dict
+from typing import Dict
 
 import attr
 import click
@@ -12,13 +12,14 @@ from ..._util import Deployment, DeploymentFile
 from ..._util.cloudformation import artifacts_bucket, deploy_stack, update_stack
 from ..._util.s3 import upload_artifact
 from ..._util.workers_zip import build_worker_bytes
+from ..._util.parameters import try_to_load_deployment_file, try_to_write_deployment_file
 
 __all__ = ("update_single_region", "update_all_regions", "update_all_deployments")
 _TEMPLATE_BUILDERS = dict(ArtifactBuilder=artifact_builder, LayerBuilder=replication_listener, Core=source_region_core)
 
 
 def _template_kwargs(*, logical_name: str, bucket: str, key: str) -> Dict[str, str]:
-    """"""
+    """Generate the template parameter arguments needed for each logical stack type."""
     if logical_name == "ArtifactBuilder":
         return dict(ArtifactBucketName=bucket, WorkersS3Key=key)
     elif logical_name == "LayerBuilder":
@@ -28,7 +29,7 @@ def _template_kwargs(*, logical_name: str, bucket: str, key: str) -> Dict[str, s
 
 
 def _create_single_stack(*, region: str, logical_name: str, regional_record: Deployment, template_kwargs: Dict[str, str]):
-    """"""
+    """Create a single stack in a single region."""
     template = _TEMPLATE_BUILDERS[logical_name].build().to_json()
 
     click.echo(f"Creating {logical_name} stack in {region}")
@@ -38,7 +39,7 @@ def _create_single_stack(*, region: str, logical_name: str, regional_record: Dep
 
 
 def _update_single_stack(*, region: str, logical_name: str, stack_name: str, template_kwargs: Dict[str, str]):
-    """"""
+    """Update a single stack in a single region."""
     template = _TEMPLATE_BUILDERS[logical_name].build().to_json()
 
     click.echo(f"Updating {logical_name} stack in {region}")
@@ -140,9 +141,12 @@ def update_all_regions(*, record: DeploymentFile):
 
 
 @click.command("all")
-@click.argument("deployment_file", required=True, type=click.File("r", encoding="utf-8"))
-def update_all_deployments(deployment_file: IO):
-    """Update deployments in all regions."""
-    record = DeploymentFile.from_dict(json.load(deployment_file))
+@click.argument("deployment_file", required=True, type=click.STRING)
+def update_all_deployments(deployment_file: str):
+    """Update deployments in all regions described in DEPLOYMENT_FILE.
+    """
+    record = try_to_load_deployment_file(deployment_file_name=deployment_file)
 
     update_all_regions(record=record)
+
+    try_to_write_deployment_file(deployment_filename=deployment_file, record=record)

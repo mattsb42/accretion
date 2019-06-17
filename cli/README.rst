@@ -55,38 +55,6 @@ and complete any partial deployments (add all builders).
 
     accretion update all DEPLOYMENT_FILE
 
-
-add
----
-
-region
-^^^^^^
-
-Add a region to an Accretion deployment.
-
-.. code:: shell
-
-    accretion add region DEPLOYMENT_FILE
-
-artifact-builder
-^^^^^^^^^^^^^^^^
-
-Add an artifact builder stack for the specified Accretion deployment.
-
-.. code:: shell
-
-    accretion add artifact-builder DEPLOYMENT_FILE
-
-
-layer-builder
-^^^^^^^^^^^^^
-
-Add a layer builder stack for the specified Accretion deployment.
-
-.. code:: shell
-
-    accretion add layer-builder DEPLOYMENT_FILE
-
 list
 ----
 
@@ -158,6 +126,38 @@ Generate the Accretion CloudFormation templates.
     accretion raw generate [builder|listener|core-source]
 
 .. _Deployment File:
+
+
+add
+^^^
+
+region
+""""""
+
+Add a region to an Accretion deployment.
+
+.. code:: shell
+
+    accretion add region DEPLOYMENT_FILE
+
+artifact-builder
+""""""""""""""""
+
+Add an artifact builder stack for the specified Accretion deployment.
+
+.. code:: shell
+
+    accretion add artifact-builder DEPLOYMENT_FILE
+
+
+layer-builder
+"""""""""""""
+
+Add a layer builder stack for the specified Accretion deployment.
+
+.. code:: shell
+
+    accretion add layer-builder DEPLOYMENT_FILE
 
 Deployment File
 ===============
