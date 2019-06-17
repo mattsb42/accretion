@@ -14,7 +14,7 @@ from .._util import Deployment, DeploymentFile
 def init_deployment_file(deployment_file: IO, regions: Iterable[str]):
     """Initialize the DEPLOYMENT_FILE for deployments to REGIONS.
 
-    This does NOT deploy to those reqions.
+    This does NOT deploy to those regions.
 
     Run "accretion update" to update and fill all regions in a deployment file.
     """

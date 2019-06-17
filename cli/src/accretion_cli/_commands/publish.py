@@ -81,7 +81,7 @@ def publish_raw_request(deployment_file: IO, request_file: IO):
 @click.argument("requirements_file", required=True, type=click.File("r", encoding="utf-8"))
 def publish_requirements_request(deployment_file: IO, layer_name: str, requirements_file: IO):
     """Request a new layer named LAYER_NAME in every region in DEPLOYMENT_FILE.
-    The Layer requirements must be defined in the requirements.txt format in REQUEST_FILE.
+    The Layer requirements must be defined in the requirements.txt format in REQUIREMENTS_FILE.
     """
     record = DeploymentFile.from_dict(json.load(deployment_file))
 

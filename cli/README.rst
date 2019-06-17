@@ -18,12 +18,43 @@ Usage
 init
 ----
 
-Create base resources for an Accretion deployment in all specified regions.
-The results are stored in ``DEPLOYMENT_FILE``.
+Initialize the ``DEPLOYMENT_FILE`` for deployments to ``REGIONS``.
+
+This does NOT deploy to those regions.
+
+Run ``accretion update`` to update and fill all regions in a deployment file.
 
 .. code:: shell
 
     accretion init DEPLOYMENT_FILE REGIONS...
+
+update
+------
+
+Update deployments in all regions described in ``DEPLOYMENT_FILE``.
+
+This will also
+initialize any empty deployment regions
+and complete any partial deployments.
+
+.. code:: shell
+
+    accretion update all DEPLOYMENT_FILE
+
+
+add regions
+-----------
+
+Add more ``REGIONS`` to an existing deployment description in ``DEPLOYMENT_FILE``.
+
+This does NOT deploy to those regions.
+
+Run ``accretion update`` to update and fill all regions in a deployment file.
+
+
+.. code:: shell
+
+    accretion add regions DEPLOYMENT_FILE REGIONS...
 
 
 destroy
@@ -31,35 +62,82 @@ destroy
 
 Destroy all resources for an Accretion deployment described in ``DEPLOYMENT_FILE``.
 
-.. important::
+.. warning::
 
-    This will destroy ALL resources.
+    This will destroy ALL resources in ALL regions.
     Be sure that is what you want to do before running this.
-
 
 .. code:: shell
 
     accretion destroy DEPLOYMENT_FILE
 
 
-update
-------
+request
+-------
 
-Update all resources for an Accretion deployment described in ``DEPLOYMENT_FILE``.
+Request a new layer version build.
 
-This will also
-initialize any empty deployment regions
-and complete any partial deployments (add all builders).
+.. important::
+
+    These operations are currently completely asynchronous with no way of tracking a layer build through the CLI.
+    I plan to add tooling around this later,
+    but the exact form it will take is still TBD.
+    `mattsb42/accretion#27 <https://github.com/mattsb42/accretion/issues/27>`_
+
+raw
+^^^
+
+Request a new layer in every region in ``DEPLOYMENT_FILE``.
+The Layer must be described in the Accretion format in ``REQUEST_FILE``.
+
+.. code:: json
+
+    {
+        "Name": "layer name",
+        "Language": "Language to target",
+        "Requirements": {
+            "Type": "ready",
+            "Requirements": [
+                {
+                    "Name": "Requirement Name",
+                    "Details": "Requirement version or other identifying details"
+                }
+            ]
+        },
+        "Requirements": {
+            "Type": "requirements.txt",
+            "Requirements": "Raw contents of requirements.txt file format"
+        }
+    }
+
+.. note::
+
+    The only supported language at this time is ``python``.
+
 
 .. code:: shell
 
-    accretion update all DEPLOYMENT_FILE
+    accretion request raw DEPLOYMENT_FILE REQUEST_FILE
+
+requirements
+^^^^^^^^^^^^
+
+Request a new layer named ``LAYER_NAME`` in every region in ``DEPLOYMENT_FILE``.
+The Layer requirements must be defined in the Python requirements.txt format in ``REQUIREMENTS_FILE``.
+
+.. code:: shell
+
+    accretion request DEPLOYMENT_FILE REQUIREMENTS_FILE
 
 list
 ----
 
 layers
 ^^^^^^
+
+.. important::
+
+    `This command has not yet been implemented <https://github.com/mattsb42/accretion/issues/4>`_.
 
 List all Accretion-managed Lambda Layers and their versions in the specified region.
 
@@ -73,24 +151,22 @@ describe
 layer-version
 ^^^^^^^^^^^^^
 
+.. important::
+
+    `This command has not yet been implemented <https://github.com/mattsb42/accretion/issues/4>`_.
+
 Describe a Layer version, listing the contents of that Layer.
 
 .. code:: shell
 
     accretion describe layer-version DEPLOYMENT_FILE REGION_NAME LAYER_NAME LAYER_VERSION
 
-request
--------
-
-Request a new Lambda Layer.
-This triggers the Artifact Builder workflow in each region with the specified :ref:`Request File`.
-
-.. code:: shell
-
-    accretion request DEPLOYMENT_FILE REQUEST_FILE
-
 check
 -----
+
+.. important::
+
+    `This command has not yet been implemented <https://github.com/mattsb42/accretion/issues/4>`_.
 
 Check a :ref:`Request File` for correctness.
 
@@ -99,74 +175,14 @@ Check a :ref:`Request File` for correctness.
 
     accretion check REQUEST_FILE
 
-raw
----
-
-You shouldn't generally need these commands.
-They expose some of the inner workings of the Accretion CLI
-and are retained primarily for testing purposes.
-They might be removed at a later date.
-
-build-workers
-^^^^^^^^^^^^^
-
-Build the zip file needed for the Accretion workers Lambdas.
-
-.. code:: shell
-
-    accretion raw build-workers OUTPUT_FILE
-
-generate
-^^^^^^^^
-
-Generate the Accretion CloudFormation templates.
-
-.. code:: shell
-
-    accretion raw generate [builder|listener|core-source]
-
-.. _Deployment File:
-
-
-add
-^^^
-
-region
-""""""
-
-Add a region to an Accretion deployment.
-
-.. code:: shell
-
-    accretion add region DEPLOYMENT_FILE
-
-artifact-builder
-""""""""""""""""
-
-Add an artifact builder stack for the specified Accretion deployment.
-
-.. code:: shell
-
-    accretion add artifact-builder DEPLOYMENT_FILE
-
-
-layer-builder
-"""""""""""""
-
-Add a layer builder stack for the specified Accretion deployment.
-
-.. code:: shell
-
-    accretion add layer-builder DEPLOYMENT_FILE
-
 Deployment File
 ===============
 
-An Accretion deployment file describes the stacks associated with a single Accretion deployment.
-
 .. warning::
 
-    Deployment files MUST NOT be modified by anything other than the Accretion CLI.
+    Deployment files MUST NOT be modified by anything other than Accretion tooling.
+
+An Accretion deployment file describes the stacks associated with a single Accretion deployment.
 
 It is a JSON file with the following structure:
 
@@ -202,7 +218,7 @@ It is a JSON file with the following structure:
             "Requirements": [
                 {
                     "Name": "Requirement Name",
-                    "Version": "Requirement Version"
+                    "Details": "Requirement version or identifying details"
                 }
             ]
         },
