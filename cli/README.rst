@@ -42,6 +42,20 @@ Destroy all resources for an Accretion deployment described in ``DEPLOYMENT_FILE
     accretion destroy DEPLOYMENT_FILE
 
 
+update
+------
+
+Update all resources for an Accretion deployment described in ``DEPLOYMENT_FILE``.
+
+This will also
+initialize any empty deployment regions
+and complete any partial deployments (add all builders).
+
+.. code:: shell
+
+    accretion update all DEPLOYMENT_FILE
+
+
 add
 ---
 
