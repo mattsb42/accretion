@@ -16,7 +16,8 @@ Accretion
 
 .. important::
 
-    Accretion is not yet stable. Use with care.
+    The Accretion builders and infrastructure should be stable now,
+    but the CLI interfaces may change.
 
 .. important::
 
