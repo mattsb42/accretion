@@ -14,18 +14,6 @@ accretion_common
    :target: https://github.com/ambv/black
    :alt: Code style: black
 
-.. image:: https://readthedocs.org/projects/accretion_common/badge/
-   :target: https://accretion_common.readthedocs.io/en/stable/
-   :alt: Documentation Status
-
-.. image:: https://travis-ci.org/accretion/accretion_common.svg?branch=master
-   :target: https://travis-ci.org/accretion/accretion_common
-   :alt: Travis CI Test Status
-
-.. image:: https://ci.appveyor.com/api/projects/status/REPLACEME/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/REPLACEME
-   :alt: AppVeyor Test Status
-
 .. warning::
 
     This package is intended only for internal use within Accretion.

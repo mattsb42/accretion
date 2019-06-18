@@ -9,7 +9,7 @@ pytestmark = [pytest.mark.local, pytest.mark.functional]
 
 LAYER_NAME = "test-layer-name"
 PYTHON = "python"
-READY = "ready"
+READY = "accretion"
 REQUIREMENTS = "requirements.txt"
 
 

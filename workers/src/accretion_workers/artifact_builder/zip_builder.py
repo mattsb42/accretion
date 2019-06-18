@@ -15,7 +15,7 @@ from accretion_common.venv_magic.uploader import artifact_exists, efficient_buil
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-WORKING_DIR = "/tmp/accretion"
+WORKING_DIR = "/tmp/accretion"  # nosec : bandit B108 tempdir doesn't work in Lambda; we have to use /tmp/ directly
 VENV_DIR = f"{WORKING_DIR}/venv"
 BUILD_DIR = f"{WORKING_DIR}/build"
 BUILD_INPUT = f"{WORKING_DIR}/build-input"

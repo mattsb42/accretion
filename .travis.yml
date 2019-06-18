@@ -1,0 +1,130 @@
+sudo: true
+dist: xenial
+
+language: python
+
+cache:
+    directories:
+        - $HOME/.cache/pip
+
+matrix:
+    include:
+        # CPython 3.6
+        -   python: 3.6
+            env:
+                - TOXENV=py36-local
+                - PROJECT=cli
+            stage: Client Tests
+        -   python: 3.6
+            env:
+                - TOXENV=py36-integ
+                - PROJECT=cli
+            stage: Client Tests
+        # CPython 3.7
+        -   python: 3.7
+            env:
+                - TOXENV=py37-local
+                - PROJECT=cli
+            stage: Client Tests
+        -   python: 3.7
+            env:
+                - TOXENV=py37-integ
+                - PROJECT=cli
+            stage: Client Tests
+        # CPython 3.6
+        -   python: 3.6
+            env:
+                - TOXENV=py36-local
+                - PROJECT=common
+            stage: Client Tests
+        -   python: 3.6
+            env:
+                - TOXENV=py36-integ
+                - PROJECT=common
+            stage: Client Tests
+        # CPython 3.7
+        -   python: 3.7
+            env:
+                - TOXENV=py37-local
+                - PROJECT=common
+            stage: Client Tests
+        -   python: 3.7
+            env:
+                - TOXENV=py37-integ
+                - PROJECT=common
+            stage: Client Tests
+        # CPython 3.6
+        -   python: 3.6
+            env:
+                - TOXENV=py36-local
+                - PROJECT=workers
+            stage: Client Tests
+        -   python: 3.6
+            env:
+                - TOXENV=py36-integ
+                - PROJECT=workers
+            stage: Client Tests
+        # CPython 3.7
+        -   python: 3.7
+            env:
+                - TOXENV=py37-local
+                - PROJECT=workers
+            stage: Client Tests
+        -   python: 3.7
+            env:
+                - TOXENV=py37-integ
+                - PROJECT=workers
+            stage: Client Tests
+        # Security
+        -   python: 3.7
+            env:
+                - TOXENV=bandit
+                - PROJECT=cli
+            stage: Static Checks
+        -   python: 3.7
+            env:
+                - TOXENV=bandit
+                - PROJECT=common
+            stage: Static Checks
+        -   python: 3.7
+            env:
+                - TOXENV=bandit
+                - PROJECT=workers
+            stage: Static Checks
+        # Linting
+        # TODO: Fix and include
+        #-   python: 3.7
+        #    env:
+        #        - TOXENV=lint
+        #        - PROJECT=cli
+        #    stage: Static Checks
+        #-   python: 3.7
+        #    env:
+        #        - TOXENV=lint
+        #        - PROJECT=common
+        #    stage: Static Checks
+        #-   python: 3.7
+        #    env:
+        #        - TOXENV=lint
+        #        - PROJECT=workers
+        #    stage: Static Checks
+        # MyPy
+        -   python: 3.7
+            env:
+                - TOXENV=mypy
+                - PROJECT=cli
+            stage: Static Checks
+        # TODO: Fix and include
+        #-   python: 3.7
+        #    env:
+        #        - TOXENV=mypy
+        #        - PROJECT=common
+        #    stage: Static Checks
+        #-   python: 3.7
+        #    env:
+        #        - TOXENV=mypy
+        #        - PROJECT=workers
+        #    stage: Static Checks
+
+install: pip install tox
+script: cd ${PROJECT} && tox -- -vv

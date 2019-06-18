@@ -2,6 +2,18 @@
 Accretion
 #########
 
+.. image:: https://img.shields.io/badge/code_style-black-000000.svg
+   :target: https://github.com/ambv/black
+   :alt: Code style: black
+
+.. image:: https://readthedocs.org/projects/accretion/badge/
+   :target: https://accretion.readthedocs.io/en/stable/
+   :alt: Documentation Status
+
+.. image:: https://travis-ci.org/accretion/accretion.svg?branch=master
+   :target: https://travis-ci.org/accretion/accretion
+   :alt: Travis CI Test Status
+
 .. important::
 
     Accretion is not yet stable. Use with care.
@@ -21,5 +33,6 @@ Find `our source code on GitHub`_.
 
    src/overview
    src/manifests
+   src/cli
 
 .. _our source code on GitHub: https://github.com/mattsb42/accretion
