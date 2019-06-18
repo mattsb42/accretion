@@ -4,7 +4,7 @@ Accretion CLI
 
 The Accretion CLI is the primary point for controlling Accretion resources.
 
-The Accretion CLI maintains configuration state in a :ref:`Deployment File`.
+The Accretion CLI maintains configuration state in a "Deployment File".
 
 .. warning::
 
@@ -168,7 +168,7 @@ check
 
     `This command has not yet been implemented <https://github.com/mattsb42/accretion/issues/4>`_.
 
-Check a :ref:`Request File` for correctness.
+Check a "Request File" for correctness.
 
 
 .. code:: shell

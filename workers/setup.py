@@ -43,7 +43,7 @@ setup(
     license="Apache License 2.0",
     install_requires=get_requirements(),
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "License :: OSI Approved :: Apache Software License",

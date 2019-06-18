@@ -1,2 +1,2 @@
 boto3>=1.9.58
-accretion_common>=0.0.1b6
+accretion_common>=0.1.1

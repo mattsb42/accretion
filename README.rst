@@ -10,8 +10,8 @@ Accretion
    :target: https://accretion.readthedocs.io/en/stable/
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/accretion/accretion.svg?branch=master
-   :target: https://travis-ci.org/accretion/accretion
+.. image:: https://travis-ci.org/mattsb42/accretion.svg?branch=master
+   :target: https://travis-ci.org/mattsb42/accretion
    :alt: Travis CI Test Status
 
 The goal of Accretion is to provide tooling
